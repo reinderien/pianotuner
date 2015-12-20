@@ -8,7 +8,7 @@ https://en.wikipedia.org/wiki/Piano#/media/File:Piano_Frequencies.svg
     C8: 4186.0Hz = 55 * 2^( 6 + 3/12)
 """
 
-import math, matplotlib, numpy, pprint, pyaudio, pyfftw, time
+import math, matplotlib, numpy, pprint, pyaudio, pyfftw, scipy.interpolate, time
 from matplotlib import pyplot as plt
 
 
@@ -40,10 +40,12 @@ def get_best_device(audio):
 def plot(spectrum, t_window):
     dx = [i/t_window for i in range(len(spectrum))]
     dy = numpy.abs(spectrum)
+    dxnew = [55 * pow(2, o + i / 48) for o in range(-2, 8) for i in range(1, 48)]
+    dynew = scipy.interpolate.interp1d(dx, dy)(dxnew)
 
     fig, ax = plt.subplots(1, 1)
     ax.set_title('Magnitude Spectrum')
-    ax.loglog(dx, dy)
+    ax.loglog(dxnew, dynew)
     ax.grid(which='major', axis='both', linestyle='-')
     ax.grid(which='minor', axis='both')
     ax.set_autoscaley_on(True)
