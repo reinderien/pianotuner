@@ -8,7 +8,7 @@ https://en.wikipedia.org/wiki/Piano#/media/File:Piano_Frequencies.svg
     C8: 4186.0Hz = 55 * 2^( 6 + 3/12)
 """
 
-import matplotlib, numpy, pprint, pyaudio, pyfftw, time
+import math, matplotlib, numpy, pprint, pyaudio, pyfftw, time
 from matplotlib import pyplot as plt
 
 
@@ -55,6 +55,23 @@ def plot(spectrum, t_window):
     plt.show()
 
 
+def get_note_name(f):
+    names = ('C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B')
+    n = math.floor(12 * math.log(f / 55) / math.log(2) + 0.5) + 21
+    name = names[n % 12] + str(int(n / 12))
+    return n, name
+
+
+def get_note(spectrum, t_window):
+    try:
+        i, v = next((i, v) for i, v in enumerate(numpy.abs(spectrum)) if v >= 100)
+    except StopIteration:
+        return None
+    f = i / t_window
+    n, name = get_note_name(f)
+    return f, n, name, v
+
+
 def capture():
     audio = pyaudio.PyAudio()
     try:
@@ -75,10 +92,10 @@ def capture():
                   (frame_count, min(in_data), max(in_data), status_flags))
 
             fft_res = fftw(input_array=in_data)
-            peak_at = numpy.argmax(numpy.abs(fft_res))
-            print('Fundamental |%f| at %f Hz' % (numpy.abs(fft_res[peak_at]), peak_at / t_window))
-
-            if numpy.abs(fft_res[peak_at]) > 100:
+            note = get_note(fft_res, t_window)
+            if note:
+                f, n, name, v = note
+                print('Fundamental |%f| at %f Hz, n=%d "%s"' % (v, f, n, name))
                 flag = pyaudio.paComplete
             else:
                 flag = pyaudio.paContinue
