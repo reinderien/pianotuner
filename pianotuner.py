@@ -30,45 +30,102 @@ def get_best_device(audio):
     return best_device, best_rate
 
 
+def get_fund_index(spectrum):
+    mags = numpy.abs(spectrum)
+    try:
+        first_i = next(i for i, v in enumerate(mags) if v >= 100)
+    except StopIteration:
+        first_i = numpy.argmax(mags)
+        print('Nothing above |100|; using index %d' % first_i)
+        return first_i
+
+    # Look for the largest component between here and the approximate midpoint to the
+    # next harmonic
+    best_i = first_i + numpy.argmax(mags[first_i: int(first_i * 1.5)])
+    print('Best in [%d, %d] is %d' % (first_i, first_i * 1.5, best_i))
+    return best_i
+
+
 def plot_init(t_window):
-    fig, ax = plt.subplots(1, 1)
-    ax.set_title('Magnitude Spectrum')
-    ax.set_xlabel('Frequency (Hz)')
-    ax.set_ylabel('Spectral Magnitude')
-    line, = ax.loglog([], [])
-    ax.grid(which='major', axis='both', linestyle='-')
-    ax.grid(which='minor', axis='both')
-    # ax.set_autoscaley_on(True)
-    ax.set_xticks(minor=False, ticks=[55 * pow(2, o) for o in range(-2, 8)])
-    ax.set_xticks(minor=True, ticks=[55 * pow(2, o + i / 12) for o in range(-2, 8) for i in range(1, 12)])
-    ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
-    ax.set_xlim(xmin=55 * pow(2, -2), xmax=55 * pow(2, 8))
-    ax.set_ylim(ymin=1e-3, ymax=1e4)
+    fig, (ax1, ax2) = plt.subplots(ncols=2, sharey=True)
+
+    ax1.set_title('Broad Spectrum')
+    ax1.set_xlabel('Frequency (Hz)')
+    ax1.set_ylabel('Spectral Magnitude')
+    broad_line, = ax1.loglog([], [])
+
+    ax2.set_title('Tuning Spectrum')
+    ax2.set_xlabel('Tune (cents)')
+    tune_line, = ax2.semilogy([], [])
+
+    for ax in (ax1, ax2):
+        ax.grid(which='major', axis='both', linestyle='-')
+        ax.grid(which='minor', axis='both')
+
+    ax1.set_xticks(minor=False, ticks=[55 * pow(2, o) for o in range(-2, 8)])
+    ax1.set_xticks(minor=True, ticks=[55 * pow(2, o + i / 12) for o in range(-2, 8) for i in range(1, 12)])
+    ax1.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+    ax1.set_xlim(xmin=55 * pow(2, -2), xmax=55 * pow(2, 8))
+    ax1.set_ylim(ymin=1e-3, ymax=1e4)
+
+    ax2.set_xlim(xmin=-100, xmax=100)
 
     def plot_loop():
         plt.show(block=True)
 
     def plot(spectrum):
-        dx = [i / t_window for i in range(len(spectrum))]
-        dy = numpy.abs(spectrum)
-        dxnew = [55 * pow(2, o + i / 48) for o in range(-2, 8) for i in range(1, 48)]
-        dynew = scipy.interpolate.interp1d(dx, dy)(dxnew)
-        line.set_xdata(dxnew)
-        line.set_ydata(dynew)
-        # ax.relim()
-        # ax.autoscale_view()
+        broad_x = [i / t_window for i in range(len(spectrum))]
+        broad_y = numpy.abs(spectrum)
+        broad_x_new = [55 * pow(2, o + i / 48) for o in range(-2, 8) for i in range(1, 48)]
+        broad_y_new = scipy.interpolate.interp1d(broad_x, broad_y)(broad_x_new)
+        broad_line.set_xdata(broad_x_new)
+        broad_line.set_ydata(broad_y_new)
+
+        fund_i = get_fund_index(spectrum)
+        fund_f = fund_i / t_window
+        fund_n = f_to_n(fund_f)
+        fund_n_goal = round(fund_n)
+        print('fund i %d f %f n %f -> %d' % (
+            fund_i, fund_f, fund_n, fund_n_goal
+        ))
+        lower_n, higher_n = fund_n_goal - 1, fund_n_goal + 1
+        lower_f, higher_f = n_to_f(lower_n), n_to_f(higher_n)
+        lower_i, higher_i = int(math.floor(lower_f * t_window)), int(math.ceil(higher_f * t_window))
+        tune_x = [100*(f_to_n(i / t_window) - fund_n_goal)
+                  for i in range(lower_i, higher_i)]
+        tune_y = broad_y[lower_i: higher_i]
+        print('n %f-%f f %f-%f i %f-%f tune-x %f-%f' % (
+            lower_n, higher_n,
+            lower_f, higher_f,
+            lower_i, higher_i,
+            tune_x[0], tune_x[-1]
+
+        ) )
+        tune_x_new = list(range(-100, 101))
+        tune_y_new = scipy.interpolate.interp1d(tune_x, tune_y, bounds_error=False)(tune_x_new)
+        tune_line.set_xdata(tune_x_new)
+        tune_line.set_ydata(tune_y_new)
+        ax2.set_xlabel('Tune (cents) from %s=%fHz' % (n_to_name(fund_n_goal), n_to_f(fund_n_goal)))
+
         fig.canvas.draw()
         fig.canvas.flush_events()
 
     return plot_loop, plot
 
 
-def get_note_name(f):
+def n_to_f(n):
+    return 55*pow(2, (n - 21)/12)
+
+
+def f_to_n(f):
+    return 12*math.log(f / 55)/math.log(2) + 21
+
+
+def n_to_name(n):
     # https://en.wikipedia.org/wiki/Piano#/media/File:Piano_Frequencies.svg
     names = ('C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B')
-    n = math.floor(12 * math.log(f / 55) / math.log(2) + 0.5) + 21
-    name = names[n % 12] + str(int(n / 12))
-    return n, name
+    n = math.floor(n + 0.5)
+    return names[n % 12] + str(int(n / 12))
 
 
 def get_note(spectrum, t_window):
@@ -77,7 +134,8 @@ def get_note(spectrum, t_window):
     except StopIteration:
         return None
     f = i / t_window
-    n, name = get_note_name(f)
+    n = f_to_n(f)
+    name = n_to_name(n)
     return f, n, name, v
 
 
