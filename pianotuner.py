@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 
-import math, matplotlib, numpy, pprint, pyaudio, pyfftw, scipy.interpolate, time
+import math, matplotlib, numpy, pprint, pyaudio, pyfftw, scipy.interpolate
 from matplotlib import pyplot as plt
 
 
@@ -30,24 +30,37 @@ def get_best_device(audio):
     return best_device, best_rate
 
 
-def plot(spectrum, t_window):
-    dx = [i / t_window for i in range(len(spectrum))]
-    dy = numpy.abs(spectrum)
-    dxnew = [55 * pow(2, o + i / 48) for o in range(-2, 8) for i in range(1, 48)]
-    dynew = scipy.interpolate.interp1d(dx, dy)(dxnew)
-
+def plot_init(t_window):
     fig, ax = plt.subplots(1, 1)
     ax.set_title('Magnitude Spectrum')
-    ax.loglog(dxnew, dynew)
+    ax.set_xlabel('Frequency (Hz)')
+    ax.set_ylabel('Spectral Magnitude')
+    line, = ax.loglog([], [])
     ax.grid(which='major', axis='both', linestyle='-')
     ax.grid(which='minor', axis='both')
-    ax.set_autoscaley_on(True)
+    # ax.set_autoscaley_on(True)
     ax.set_xticks(minor=False, ticks=[55 * pow(2, o) for o in range(-2, 8)])
     ax.set_xticks(minor=True, ticks=[55 * pow(2, o + i / 12) for o in range(-2, 8) for i in range(1, 12)])
     ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
     ax.set_xlim(xmin=55 * pow(2, -2), xmax=55 * pow(2, 8))
+    ax.set_ylim(ymin=1e-3, ymax=1e4)
 
-    plt.show()
+    def plot_loop():
+        plt.show(block=True)
+
+    def plot(spectrum):
+        dx = [i / t_window for i in range(len(spectrum))]
+        dy = numpy.abs(spectrum)
+        dxnew = [55 * pow(2, o + i / 48) for o in range(-2, 8) for i in range(1, 48)]
+        dynew = scipy.interpolate.interp1d(dx, dy)(dxnew)
+        line.set_xdata(dxnew)
+        line.set_ydata(dynew)
+        # ax.relim()
+        # ax.autoscale_view()
+        fig.canvas.draw()
+        fig.canvas.flush_events()
+
+    return plot_loop, plot
 
 
 def get_note_name(f):
@@ -68,8 +81,8 @@ def get_note(spectrum, t_window):
     return f, n, name, v
 
 
-def audio_cb(fftw, t_window):
-    def inner(in_data, frame_count, time_info, status_flags):
+def audio_cb(fftw, t_window, plot):
+    def cb(in_data, frame_count, time_info, status_flags):
         in_data = pyfftw.n_byte_align(n=16, array=numpy.fromstring(in_data, dtype='float32'))
         print('%d samples in [%f %f]; status %s' %
               (frame_count, min(in_data), max(in_data), status_flags))
@@ -79,13 +92,14 @@ def audio_cb(fftw, t_window):
         if note:
             f, n, name, v = note
             print('Fundamental |%.1f| at %.1f Hz, n=%d "%s"' % (v, f, n, name))
-            flag = pyaudio.paComplete
-        else:
+        try:
+            plot(fft_res)
             flag = pyaudio.paContinue
-
+        except RuntimeError:
+            flag = pyaudio.paComplete
         out_data = None
         return out_data, flag
-    return inner
+    return cb
 
 
 def capture():
@@ -104,22 +118,22 @@ def capture():
                            direction='FFTW_FORWARD',
                            flags=('FFTW_MEASURE', 'FFTW_DESTROY_INPUT'),
                            threads=4, planning_timelimit=2)
+
+        print('Initializing plot...')
+        plot_loop, plot = plot_init(t_window)
+
         print('Opening capture stream...')
         stream = audio.open(rate=best_rate, channels=1, format=pyaudio.paFloat32,
                             input=True, input_device_index=best_device['index'],
-                            frames_per_buffer=n_frames, stream_callback=audio_cb(fftw, t_window))
+                            frames_per_buffer=n_frames, stream_callback=audio_cb(fftw, t_window, plot))
         try:
-            while stream.is_active() and not stream.is_stopped():
-                time.sleep(1)
+            plot_loop()
         finally:
             print('Closing audio...')
             stream.stop_stream()
             stream.close()
     finally:
         audio.terminate()
-
-    print('Plotting...')
-    plot(fft_out, t_window)
 
 
 capture()
