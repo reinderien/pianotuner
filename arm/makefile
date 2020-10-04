@@ -22,9 +22,9 @@ $(sdl_inc):
 pianotuner: $(objs)
 	$$gcc $$ldflags -o $@ $^
 
-%.o: %.c $(gcc) $(sdl_inc)
+%.o: %.c $(gcc) $(sdl_inc) makefile
 	$$gcc $$cflags -c -o $@ $<
 
 clean:
-	rm -rf *.o pianotuner
+	git clean -Xf
 
