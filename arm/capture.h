@@ -1,5 +1,9 @@
 #pragma once
 
-void capture_init(void);
-void capture_deinit(void);
+
+struct CaptureContextTag;
+typedef struct CaptureContextTag CaptureContext;
+
+CaptureContext *capture_init(void);
+void capture_deinit(CaptureContext*);
 

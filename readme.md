@@ -4,8 +4,7 @@
 
 === apt packages
 
-- libsdl2-dev (for compilation only)
-- libsdl2-2.0-0 - SDL support
+- libasound2-dev (for compilation only)
 - libasound2 - underlying ALSA support
 
 Todo: move to headless mode and blow away a pile of unneeded packages.
@@ -93,8 +92,4 @@ Its setup is:
   appl_ptr     : 0
   hw_ptr       : 0
 ```
-
-
-
-
 

@@ -1,17 +1,21 @@
 #include <stdio.h>
 #include <stdlib.h>
+
 #include "capture.h"
+
+
+static CaptureContext *capture;
 
 
 void cleanup()
 {
-    capture_deinit();
+    capture_deinit(capture);
 }
 
 
 int main(int argc, const char **argv)
 {
-    capture_init();
+    capture = capture_init();
     
     if (atexit(cleanup))
     {
