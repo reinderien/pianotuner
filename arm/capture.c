@@ -9,6 +9,7 @@
 #include "capture.h"
 
 
+#define SUBDEV_NO 0
 #define NAME_SIZE 16
 
 
@@ -86,6 +87,11 @@ static void enumerate(CaptureContext *ctx)
 {
     puts("Enumerating devices...");
 
+    ctx->pcm_info = malloc(snd_pcm_info_sizeof());
+    ctx->card_info = malloc(snd_ctl_card_info_sizeof());
+    assert(ctx->pcm_info);
+    assert(ctx->card_info);
+
     // Iterate through all cards
     for (ctx->card_no = -1;;)
     {
@@ -115,9 +121,8 @@ static void enumerate(CaptureContext *ctx)
             printf("hw:%d,%d", ctx->card_no, ctx->dev_no);
 
 			// Do not iterate through subdevices; just use the first
-			const int subdev_no = 0;
-			snd_pcm_info_set_subdevice(ctx->pcm_info, subdev_no);
 			snd_pcm_info_set_device(ctx->pcm_info, ctx->dev_no);
+			snd_pcm_info_set_subdevice(ctx->pcm_info, SUBDEV_NO);
 			snd_pcm_info_set_stream(ctx->pcm_info, SND_PCM_STREAM_CAPTURE);
 			
 			int err = snd_ctl_pcm_info(ctx->card_ctl, ctx->pcm_info);
@@ -125,7 +130,7 @@ static void enumerate(CaptureContext *ctx)
             {
                 case 0:
                     // Use the first device that is capture-capable
-                    printf(",%d: use\n", subdev_no);
+                    printf(",%d: use\n", SUBDEV_NO);
                     return;
                 case -ENOENT:
                     // This PCM doesn't have capture
@@ -150,9 +155,10 @@ static void init_pcm(CaptureContext *ctx)
     assert(snprintf(
         ctx->card_name,
         NAME_SIZE,
-        "hw:%d,%d",
+        "hw:%d,%d,%d",
         ctx->card_no,
-        ctx->dev_no
+        ctx->dev_no,
+        SUBDEV_NO
     ) > 0);
     check_snd(snd_pcm_open(
         &ctx->pcm,
@@ -161,17 +167,22 @@ static void init_pcm(CaptureContext *ctx)
         0 // mode
     ));
 
+    ctx->hwparams = malloc(snd_pcm_hw_params_sizeof());
+    assert(ctx->hwparams);
     check_snd(snd_pcm_hw_params_any(ctx->pcm, ctx->hwparams));
 
     check_snd(snd_pcm_hw_params_set_access(
         ctx->pcm,
         ctx->hwparams,
+        // Interleaved has no effect since we have only one channel,
+        // but it's the default - so fine
         SND_PCM_ACCESS_MMAP_INTERLEAVED
     ));
 
     check_snd(snd_pcm_hw_params_set_format(
         ctx->pcm,
         ctx->hwparams,
+        // This is the only one supported by the hardware anyway
         SND_PCM_FORMAT_S16_LE
     ));
 
@@ -264,13 +275,6 @@ CaptureContext *capture_init(void)
     CaptureContext *ctx = malloc(sizeof(CaptureContext));
     assert(ctx);
 
-    snd_pcm_info_alloca(&ctx->pcm_info);
-    snd_ctl_card_info_alloca(&ctx->card_info);
-    snd_pcm_hw_params_alloca(&ctx->hwparams);
-    assert(ctx->pcm_info);
-    assert(ctx->card_info);
-    assert(ctx->hwparams);
-
     const bool close = false;
     check_snd(snd_output_stdio_attach(
         &ctx->output,
@@ -288,14 +292,13 @@ CaptureContext *capture_init(void)
 
 void capture_deinit(CaptureContext *ctx)
 {
-    // Causes a segfault
-    // snd_ctl_card_info_free(ctx->card_info);
-    // snd_pcm_info_free(ctx->pcm_info);
-    // snd_pcm_hw_params_free(ctx->hwparams);
-
     warn_snd(snd_pcm_close(ctx->pcm));
     warn_snd(snd_ctl_close(ctx->card_ctl));
     snd_config_update_free_global();
+
+    free(ctx->card_info);
+    free(ctx->pcm_info);
+    free(ctx->hwparams);
     free(ctx);
 }
 
