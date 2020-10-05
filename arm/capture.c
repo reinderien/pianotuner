@@ -77,7 +77,7 @@ static const char *snd_pcm_subclass_name(snd_pcm_subclass_t subclass)
 
 static void enumerate(CaptureContext *ctx)
 {
-    puts("Enumerating devices...\n");
+    puts("Enumerating devices...");
 
     // Iterate through all cards
     for (ctx->card_no = -1;;)
@@ -106,9 +106,11 @@ static void enumerate(CaptureContext *ctx)
                 break;
 
 			snd_pcm_info_set_device(ctx->pcm_info, ctx->dev_no);
-			snd_pcm_info_set_subdevice(ctx->pcm_info, 0);
 			snd_pcm_info_set_stream(ctx->pcm_info, SND_PCM_STREAM_CAPTURE);
 			
+			// Do not iterate through subdevices; just use the first
+			snd_pcm_info_set_subdevice(ctx->pcm_info, 0);
+
 			int err = snd_ctl_pcm_info(ctx->card_ctl, ctx->pcm_info);
             switch (err)
             {
@@ -117,6 +119,7 @@ static void enumerate(CaptureContext *ctx)
                     return;
                 case -ENOENT:
                     // This PCM doesn't have capture
+                    printf("Skipping %d.%d.*\n", ctx->card_no, ctx->dev_no);
                     break;
                 default:
                     // Different failure - treat it as fatal
@@ -182,7 +185,8 @@ static void describe(const CaptureContext *ctx)
 {
     check_snd(snd_ctl_card_info(ctx->card_ctl, ctx->card_info));
 
-    puts("Card -------------");
+    puts("\n"
+         "Card -------------");
     printf("  name       : %s\n", ctx->card_name);
     printf("  id         : %s\n",
         snd_ctl_card_info_get_id(ctx->card_info));
@@ -239,15 +243,15 @@ CaptureContext *capture_init(void)
     assert(ctx->card_info);
     assert(ctx->hwparams);
 
-    enumerate(ctx);
-    init_pcm(ctx);
-
     const bool close = false;
     check_snd(snd_output_stdio_attach(
         &ctx->output,
         stdout,
         close
     ));
+
+    enumerate(ctx);
+    init_pcm(ctx);
     describe(ctx);
 
     return ctx;
