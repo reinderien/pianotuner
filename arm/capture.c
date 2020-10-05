@@ -17,6 +17,7 @@ struct CaptureContextTag
     int card_no, dev_no;
     char card_name[name_size];
 
+    snd_output_t *output;
     snd_ctl_t *card_ctl;
     snd_ctl_card_info_t *card_info;
 	snd_pcm_info_t *pcm_info;
@@ -154,7 +155,7 @@ static void init_pcm(CaptureContext *ctx)
         1
     ));
 
-    // Use maximum sampling rate, works out to 48,000
+    // Use maximum sampling rate; works out to 48,000
     int direction;
     check_snd(snd_pcm_hw_params_set_rate_last(
         ctx->pcm,
@@ -182,53 +183,47 @@ static void describe(const CaptureContext *ctx)
     check_snd(snd_ctl_card_info(ctx->card_ctl, ctx->card_info));
 
     puts("Card -------------");
-    printf("Name:       %s\n", ctx->card_name);
-    printf("ID:         %s\n",
+    printf("  name       : %s\n", ctx->card_name);
+    printf("  id         : %s\n",
         snd_ctl_card_info_get_id(ctx->card_info));
-    printf("Components: %s\n",
+    printf("  components : %s\n",
         snd_ctl_card_info_get_components(ctx->card_info));
-    printf("Driver:     %s\n",
+    printf("  driver     : %s\n",
         snd_ctl_card_info_get_driver(ctx->card_info));
-    printf("Short name: %s\n",
+    printf("  short name : %s\n",
         snd_ctl_card_info_get_name(ctx->card_info));
-    printf("Long name:  %s\n",
+    printf("  long name  : %s\n",
         snd_ctl_card_info_get_longname(ctx->card_info));
-    printf("Mixer:      %s\n\n",
+    printf("  mixer      : %s\n\n",
         snd_ctl_card_info_get_mixername(ctx->card_info));
 
     puts("PCM --------------");
-    printf("Card:       %d\n",
+    printf("  card        : %d\n",
         snd_pcm_info_get_card(ctx->pcm_info));
-    printf("Device:     %d\n",
+    printf("  device      : %d\n",
         snd_pcm_info_get_device(ctx->pcm_info));
-    printf("Subdevice:  %d\n",
-        snd_pcm_info_get_subdevice(ctx->pcm_info));
-    printf("Subdevices: %d\n",
-        snd_pcm_info_get_subdevices_count(ctx->pcm_info));
-    printf("Stream:     %s\n",
-        snd_pcm_stream_name(
-            snd_pcm_info_get_stream(ctx->pcm_info)
-        ));
-    printf("Name:       %s\n",
+    printf("  subdev index/avail/total : %d/%d/%d\n",
+        snd_pcm_info_get_subdevice(ctx->pcm_info),
+        snd_pcm_info_get_subdevices_avail(ctx->pcm_info),
+        snd_pcm_info_get_subdevices_count(ctx->pcm_info)
+    );
+    printf("  name        : %s\n",
         snd_pcm_info_get_name(ctx->pcm_info));
-    printf("ID:         %s\n",
+    printf("  id          : %s\n",
         snd_pcm_info_get_id(ctx->pcm_info));
-    printf("Subdev name:%s\n",
+    printf("  subdev name : %s\n",
         snd_pcm_info_get_subdevice_name(ctx->pcm_info));
-    printf("Class:      %s\n",
+    printf("  class       : %s\n",
         snd_pcm_class_name(
             snd_pcm_info_get_class(ctx->pcm_info)
         ));
-    printf("Subclass:   %s\n\n",
+    printf("  subclass    : %s\n\n",
         snd_pcm_subclass_name(
             snd_pcm_info_get_subclass(ctx->pcm_info)
         ));
 
-    puts("Hardware params --");
-    printf("Format:     %s\n",
-        snd_pcm_format_name(SND_PCM_FORMAT_S16_LE));
-    printf("Rate:       %u\n", ctx->rate);
-    printf("Channels:   1\n\n");
+    puts("Parameters -------");
+    check_snd(snd_pcm_dump(ctx->pcm, ctx->output));
 }
 
 
@@ -246,6 +241,13 @@ CaptureContext *capture_init(void)
 
     enumerate(ctx);
     init_pcm(ctx);
+
+    const bool close = false;
+    check_snd(snd_output_stdio_attach(
+        &ctx->output,
+        stdout,
+        close
+    ));
     describe(ctx);
 
     return ctx;
