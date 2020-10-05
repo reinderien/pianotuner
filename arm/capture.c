@@ -112,7 +112,7 @@ static void enumerate(CaptureContext *ctx)
             if (ctx->dev_no < 0)
                 break;
 
-            printf("%d.%d", ctx->card_no, ctx->dev_no);
+            printf("hw:%d,%d", ctx->card_no, ctx->dev_no);
 
 			// Do not iterate through subdevices; just use the first
 			const int subdev_no = 0;
@@ -125,11 +125,11 @@ static void enumerate(CaptureContext *ctx)
             {
                 case 0:
                     // Use the first device that is capture-capable
-                    printf(".%d: use\n", subdev_no);
+                    printf(",%d: use\n", subdev_no);
                     return;
                 case -ENOENT:
                     // This PCM doesn't have capture
-                    puts(".*: skip");
+                    puts(",*: skip");
                     break;
                 default:
                     // Different failure - treat it as fatal
@@ -147,6 +147,13 @@ static void enumerate(CaptureContext *ctx)
 
 static void init_pcm(CaptureContext *ctx)
 {
+    assert(snprintf(
+        ctx->card_name,
+        NAME_SIZE,
+        "hw:%d,%d",
+        ctx->card_no,
+        ctx->dev_no
+    ) > 0);
     check_snd(snd_pcm_open(
         &ctx->pcm,
         ctx->card_name,
@@ -155,6 +162,12 @@ static void init_pcm(CaptureContext *ctx)
     ));
 
     check_snd(snd_pcm_hw_params_any(ctx->pcm, ctx->hwparams));
+
+    check_snd(snd_pcm_hw_params_set_access(
+        ctx->pcm,
+        ctx->hwparams,
+        SND_PCM_ACCESS_MMAP_INTERLEAVED
+    ));
 
     check_snd(snd_pcm_hw_params_set_format(
         ctx->pcm,
