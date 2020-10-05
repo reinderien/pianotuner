@@ -21,8 +21,9 @@ struct CaptureContextTag
     snd_ctl_card_info_t *card_info;
 	snd_pcm_info_t *pcm_info;
 	snd_pcm_t *pcm;
+	snd_pcm_hw_params_t *hwparams;
 	
-    int capture_freq;
+    unsigned rate;
 };
 
 
@@ -75,6 +76,8 @@ static const char *snd_pcm_subclass_name(snd_pcm_subclass_t subclass)
 
 static void enumerate(CaptureContext *ctx)
 {
+    puts("Enumerating devices...\n");
+    
     // Iterate through all cards
     for (ctx->card_no = -1;;)
     {
@@ -128,6 +131,50 @@ static void enumerate(CaptureContext *ctx)
 }
 
 
+static void init_pcm(CaptureContext *ctx)
+{
+    check_snd(snd_pcm_open(
+        &ctx->pcm, 
+        ctx->card_name, 
+        SND_PCM_STREAM_CAPTURE,
+        0 // mode
+    ));
+    
+    check_snd(snd_pcm_hw_params_any(ctx->pcm, ctx->hwparams));
+    
+    check_snd(snd_pcm_hw_params_set_format(
+        ctx->pcm,
+        ctx->hwparams,
+        SND_PCM_FORMAT_S16_LE
+    ));
+    
+    check_snd(snd_pcm_hw_params_set_channels(
+        ctx->pcm,
+        ctx->hwparams,
+        1
+    ));
+    
+    // Use maximum sampling rate, works out to 48,000
+    int direction;
+    check_snd(snd_pcm_hw_params_set_rate_last(
+        ctx->pcm,
+        ctx->hwparams,
+        &ctx->rate,
+        &direction
+    ));
+    if (direction != 0)
+    {
+        fprintf(
+            stderr, 
+            "Inexact sampling frequency %u; direction %d\n",
+            ctx->rate,
+            direction
+        );
+        exit(-1);
+    }
+}
+
+
 static void describe(const CaptureContext *ctx)
 {
     check_snd(snd_ctl_card_info(ctx->card_ctl, ctx->card_info));
@@ -174,6 +221,12 @@ static void describe(const CaptureContext *ctx)
         snd_pcm_subclass_name(
             snd_pcm_info_get_subclass(ctx->pcm_info)
         ));
+    
+    puts("Hardware params --");
+    printf("Format:     %s\n",
+        snd_pcm_format_name(SND_PCM_FORMAT_S16_LE));
+    printf("Rate:       %u\n", ctx->rate);
+    printf("Channels:   1\n\n");
 }
 
 
@@ -182,22 +235,16 @@ CaptureContext *capture_init(void)
     CaptureContext *ctx = malloc(sizeof(CaptureContext));
     assert(ctx);
    
-    puts("Enumerating devices...\n");
-    
     snd_pcm_info_alloca(&ctx->pcm_info);
-    assert(ctx->pcm_info);
     snd_ctl_card_info_alloca(&ctx->card_info);
+    snd_pcm_hw_params_alloca(&ctx->hwparams);
+    assert(ctx->pcm_info);
     assert(ctx->card_info);
+    assert(ctx->hwparams);
     
     enumerate(ctx);
+    init_pcm(ctx);
     describe(ctx);
-
-    check_snd(snd_pcm_open(
-        &ctx->pcm, 
-        ctx->card_name, 
-        SND_PCM_STREAM_CAPTURE,
-        0 // mode
-    ));                                                  
     
     return ctx;
 }
@@ -208,6 +255,7 @@ void capture_deinit(CaptureContext *ctx)
     // Causes a segfault
     // snd_ctl_card_info_free(ctx->card_info);
     // snd_pcm_info_free(ctx->pcm_info);
+    // snd_pcm_hw_params_free(ctx->hwparams);
     
     check_snd(snd_pcm_close(ctx->pcm));
     check_snd(snd_ctl_close(ctx->card_ctl));

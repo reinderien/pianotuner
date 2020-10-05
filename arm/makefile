@@ -6,7 +6,7 @@ alsa_inc = /usr/include/alsa
 gcc = /usr/bin/gcc
 objs = main.o capture.o
 
-cflags=$(shell pkg-config --cflags alsa) -D_GNU_SOURCE -Wall -std=c18
+cflags=$(shell pkg-config --cflags alsa) -D_GNU_SOURCE -Wall -std=c18 -ggdb
 ldflags=$(shell pkg-config --libs alsa)
 $(info cflags=${cflags})
 $(info ldflags=${ldflags})
