@@ -9,13 +9,13 @@
 #include "capture.h"
 
 
-#define name_size 16
+#define NAME_SIZE 16
 
 
 struct CaptureContextTag
 {
     int card_no, dev_no;
-    char card_name[name_size];
+    char card_name[NAME_SIZE];
 
     snd_output_t *output;
     snd_ctl_t *card_ctl;
@@ -28,7 +28,7 @@ struct CaptureContextTag
 };
 
 
-static void check_snd(int err)
+static void warn_snd(int err)
 {
     if (err)
     {
@@ -38,8 +38,15 @@ static void check_snd(int err)
             err,
             snd_strerror(err)
         );
-        exit(1);
     }
+}
+
+
+static void check_snd(int err)
+{
+    warn_snd(err);
+    if (err)
+        exit(1);
 }
 
 
@@ -88,7 +95,7 @@ static void enumerate(CaptureContext *ctx)
 
         assert(snprintf(
             ctx->card_name,
-            name_size,
+            NAME_SIZE,
             "hw:%d",
             ctx->card_no
         ) > 0);
@@ -98,28 +105,31 @@ static void enumerate(CaptureContext *ctx)
             SND_CTL_READONLY
         ));
 
-        // Iterate through PCMs on this card
+        // Iterate through PCM devices on this card
         for (ctx->dev_no = -1;;)
         {
             check_snd(snd_ctl_pcm_next_device(ctx->card_ctl, &ctx->dev_no));
             if (ctx->dev_no < 0)
                 break;
 
+            printf("%d.%d", ctx->card_no, ctx->dev_no);
+
+			// Do not iterate through subdevices; just use the first
+			const int subdev_no = 0;
+			snd_pcm_info_set_subdevice(ctx->pcm_info, subdev_no);
 			snd_pcm_info_set_device(ctx->pcm_info, ctx->dev_no);
 			snd_pcm_info_set_stream(ctx->pcm_info, SND_PCM_STREAM_CAPTURE);
 			
-			// Do not iterate through subdevices; just use the first
-			snd_pcm_info_set_subdevice(ctx->pcm_info, 0);
-
 			int err = snd_ctl_pcm_info(ctx->card_ctl, ctx->pcm_info);
             switch (err)
             {
                 case 0:
                     // Use the first device that is capture-capable
+                    printf(".%d: use\n", subdev_no);
                     return;
                 case -ENOENT:
                     // This PCM doesn't have capture
-                    printf("Skipping %d.%d.*\n", ctx->card_no, ctx->dev_no);
+                    puts(".*: skip");
                     break;
                 default:
                     // Different failure - treat it as fatal
@@ -158,6 +168,10 @@ static void init_pcm(CaptureContext *ctx)
         1
     ));
 
+    check_snd(snd_pcm_hw_params_set_rate_resample(
+        ctx->pcm, ctx->hwparams, false
+    ));
+
     // Use maximum sampling rate; works out to 48,000
     int direction;
     check_snd(snd_pcm_hw_params_set_rate_last(
@@ -178,6 +192,7 @@ static void init_pcm(CaptureContext *ctx)
     }
 
     check_snd(snd_pcm_hw_params(ctx->pcm, ctx->hwparams));
+    check_snd(snd_pcm_prepare(ctx->pcm));
 }
 
 
@@ -265,8 +280,8 @@ void capture_deinit(CaptureContext *ctx)
     // snd_pcm_info_free(ctx->pcm_info);
     // snd_pcm_hw_params_free(ctx->hwparams);
 
-    check_snd(snd_pcm_close(ctx->pcm));
-    check_snd(snd_ctl_close(ctx->card_ctl));
+    warn_snd(snd_pcm_close(ctx->pcm));
+    warn_snd(snd_ctl_close(ctx->card_ctl));
     snd_config_update_free_global();
     free(ctx);
 }
