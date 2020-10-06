@@ -77,6 +77,7 @@ static const char *snd_pcm_class_name(snd_pcm_class_t class)
         "MODEM",
         "DIGITIZER"
     };
+    assert(class <= SND_PCM_CLASS_LAST);
     return names[class];
 }
 
@@ -88,6 +89,7 @@ static const char *snd_pcm_subclass_name(snd_pcm_subclass_t subclass)
         "GENERIC MIX",
         "MULTI MIX"
     };
+    assert(subclass <= SND_PCM_SUBCLASS_LAST);
     return names[subclass];
 }
 
@@ -101,6 +103,7 @@ static const char *snd_ctl_type_name(snd_ctl_type_t type)
         "INET",
         "EXT"
     };
+    assert(type <= SND_CTL_TYPE_EXT);
     return names[type];
 }
 
