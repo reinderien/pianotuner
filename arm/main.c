@@ -1,3 +1,6 @@
+#include <limits.h>
+#include <signal.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -13,8 +16,31 @@ static void cleanup()
 }
 
 
+static void handle_sigint(int signal)
+{
+    cleanup();
+    exit(0);
+}
+
+
 static void consume(const int16_t *samples, int n_samples)
 {
+    int min = INT_MAX, max = INT_MIN, sum = 0, asum = 0;
+    for (int i = 0; i < n_samples; i++)
+    {
+        int16_t x = samples[i];
+        min = x < min ? x : min;
+        max = x > max ? x : max;
+        sum += x;
+        asum += abs(x);
+    }
+
+    printf(
+        "min=%-6d max=%-6d ave=%-6d pow=%-6d\r",
+        min, max,
+        sum / n_samples,
+        asum / n_samples
+    );
     fflush(stdout);
 }
 
@@ -28,11 +54,11 @@ int main(int argc, const char **argv)
         perror("Failed to register deinit");
         exit(-1);
     }
+    signal(SIGINT, handle_sigint);
 
-    for (int i = 0; i < 50; i++)
-    {
+    while (true)
         capture_period(capture, consume);
-    }
+
     putchar('\n');
 
     return 0;
