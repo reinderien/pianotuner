@@ -42,7 +42,6 @@ struct CaptureContextTag
 	
     unsigned rate, period, timeout_ms, timeout_us;
     bool restart;
-
     snd_pcm_state_t prev_state;
 };
 
@@ -71,46 +70,38 @@ static void check_snd(int err)
 
 static const char *snd_pcm_class_name(snd_pcm_class_t class)
 {
-    switch (class)
+    static const char *names[] =
     {
-        case SND_PCM_CLASS_GENERIC:
-            return "GENERIC";
-        case SND_PCM_CLASS_MULTI:
-            return "MULTI";
-        case SND_PCM_CLASS_MODEM:
-            return "MODEM";
-        case SND_PCM_CLASS_DIGITIZER:
-            return "DIGITIZER";
-        default:
-            assert(false);
-    }
+        "GENERIC",
+        "MULTI",
+        "MODEM",
+        "DIGITIZER"
+    };
+    return names[class];
 }
 
 
 static const char *snd_pcm_subclass_name(snd_pcm_subclass_t subclass)
 {
-    switch (subclass)
+    static const char *names[] =
     {
-        case SND_PCM_SUBCLASS_GENERIC_MIX:
-            return "GENERIC MIX";
-        case SND_PCM_SUBCLASS_MULTI_MIX:
-            return "MULTI MIX";
-        default:
-            assert(false);
-    }
+        "GENERIC MIX",
+        "MULTI MIX"
+    };
+    return names[subclass];
 }
 
 
 static const char *snd_ctl_type_name(snd_ctl_type_t type)
 {
-    static const char *types[] =
+    static const char *names[] =
     {
         "HW",
         "SHM",
         "INET",
         "EXT"
     };
-    return types[type];
+    return names[type];
 }
 
 
