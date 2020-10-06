@@ -101,7 +101,7 @@ static const char *snd_pcm_subclass_name(snd_pcm_subclass_t subclass)
 }
 
 
-static void enumerate(CaptureContext *ctx)
+static void enumerate(CaptureContext *restrict ctx)
 {
     puts("Enumerating devices...");
 
@@ -168,7 +168,7 @@ static void enumerate(CaptureContext *ctx)
 }
 
 
-static void init_pcm(CaptureContext *ctx)
+static void init_pcm(CaptureContext *restrict ctx)
 {
     assert(snprintf(
         ctx->card_name,
@@ -267,7 +267,7 @@ static void init_pcm(CaptureContext *ctx)
 }
 
 
-static void describe(const CaptureContext *ctx)
+static void describe(const CaptureContext *restrict ctx)
 {
     check_snd(snd_ctl_card_info(ctx->card_ctl, ctx->card_info));
 
@@ -372,7 +372,13 @@ void capture_deinit(CaptureContext *ctx)
 }
 
 
-static bool resume(CaptureContext *ctx)
+/*
+All of the following is based loosely on the "direct write only" method
+shown in alsa-lib's test/pcm.c
+*/
+
+
+static bool resume(const CaptureContext *restrict ctx)
 {
     fputs("Attempting to resume...\n", stderr);
 
@@ -392,7 +398,7 @@ static bool resume(CaptureContext *ctx)
 }
 
 
-static bool recover(CaptureContext *ctx, int err)
+static bool recover(const CaptureContext *restrict ctx, int err)
 {
     const char *name = snd_strerror(err);
     fprintf(stderr, "Attempting recovery from error %s...\n", name);
@@ -418,7 +424,7 @@ static bool recover(CaptureContext *ctx, int err)
 }
 
 
-static bool recover_err(CaptureContext *ctx, int err)
+static bool recover_err(const CaptureContext *restrict ctx, int err)
 {
     fprintf(
         stderr,
@@ -429,7 +435,10 @@ static bool recover_err(CaptureContext *ctx, int err)
 }
 
 
-static bool recover_state(CaptureContext *ctx, snd_pcm_state_t state)
+static bool recover_state(
+    CaptureContext *restrict ctx,
+    snd_pcm_state_t state
+)
 {
     const char *name = snd_pcm_state_name(state);
 
@@ -484,7 +493,7 @@ static bool recover_state(CaptureContext *ctx, snd_pcm_state_t state)
 }
 
 
-static snd_pcm_sframes_t capture_wait(CaptureContext *ctx)
+static snd_pcm_sframes_t capture_wait(CaptureContext *restrict ctx)
 {
     snd_pcm_state_t state = snd_pcm_state(ctx->pcm);
     if (!recover_state(ctx, state))
