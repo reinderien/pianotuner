@@ -395,6 +395,10 @@ static void describe_elems(const CaptureContext *restrict ctx)
     snd_ctl_elem_info_t *elem;
 	snd_ctl_elem_info_alloca(&elem);
 	assert(elem);
+	
+    snd_ctl_elem_value_t *value;
+	snd_ctl_elem_value_alloca(&value);
+	assert(value);
 
 	puts(
         "Control elements ---------------------------------------------------\n"
@@ -424,21 +428,23 @@ static void describe_elems(const CaptureContext *restrict ctx)
         char min[32], max[32], step[32];
         switch (type)
         {
-        case SND_CTL_ELEM_TYPE_INTEGER64:
-            snprintf(min, 32, "%lld", snd_ctl_elem_info_get_min64(elem));
-            snprintf(max, 32, "%lld", snd_ctl_elem_info_get_max64(elem));
-            snprintf(step, 32, "%lld", snd_ctl_elem_info_get_step64(elem));
-            break;
         case SND_CTL_ELEM_TYPE_INTEGER:
             snprintf(min, 32, "%ld", snd_ctl_elem_info_get_min(elem));
             snprintf(max, 32, "%ld", snd_ctl_elem_info_get_max(elem));
             snprintf(step, 32, "%ld", snd_ctl_elem_info_get_step(elem));
+            break;
+        case SND_CTL_ELEM_TYPE_INTEGER64:
+            snprintf(min, 32, "%lld", snd_ctl_elem_info_get_min64(elem));
+            snprintf(max, 32, "%lld", snd_ctl_elem_info_get_max64(elem));
+            snprintf(step, 32, "%lld", snd_ctl_elem_info_get_step64(elem));
             break;
         default:
             strncpy(min, "<non-integer>", 32);
             strncpy(max, "<non-integer>", 32);
             strncpy(step, "<non-integer>", 32);
         }
+
+        bool readable = snd_ctl_elem_info_is_readable(elem);
 
         printf(
             "  name       : %s\n"
@@ -467,7 +473,7 @@ static void describe_elems(const CaptureContext *restrict ctx)
             "  tlv commandable : %d\n"
             "  tlv readable    : %d\n"
             "  tlv writeable   : %d\n"
-            "\n",
+            ,
             snd_ctl_elem_info_get_name(elem),
             snd_ctl_elem_type_name(
                 snd_ctl_elem_info_get_type(elem)
@@ -492,13 +498,56 @@ static void describe_elems(const CaptureContext *restrict ctx)
             snd_ctl_elem_info_is_locked(elem),
             snd_ctl_elem_info_is_owner(elem),
             snd_ctl_elem_info_is_user(elem),
-            snd_ctl_elem_info_is_readable(elem),
+            readable,
             snd_ctl_elem_info_is_writable(elem),
             snd_ctl_elem_info_is_volatile(elem),
             snd_ctl_elem_info_is_tlv_commandable(elem),
             snd_ctl_elem_info_is_tlv_readable(elem),
             snd_ctl_elem_info_is_tlv_writable(elem)
         );
+
+        if (readable)
+        {
+            snd_ctl_elem_value_set_id(value, id);
+            check_snd(snd_ctl_elem_read(ctx->ctl, value));
+
+            char val_str[64];
+            const int index = 0;
+
+            switch (type)
+            {
+            case SND_CTL_ELEM_TYPE_INTEGER:
+                snprintf(
+                    val_str, 64, "%ld",
+                    snd_ctl_elem_value_get_integer(value, index)
+                );
+                break;
+            case SND_CTL_ELEM_TYPE_INTEGER64:
+                snprintf(
+                    val_str, 64, "%lld",
+                    snd_ctl_elem_value_get_integer64(value, index)
+                );
+                break;
+            case SND_CTL_ELEM_TYPE_BOOLEAN:
+                strncpy(
+                    val_str,
+                    snd_ctl_elem_value_get_boolean(value, index)
+                    ? "TRUE" : "FALSE",
+                    64
+                );
+                break;
+            default:
+                strncpy(val_str, "Unsupported type", 64);
+                break;
+            }
+
+            printf(
+                "  value      : %s\n",
+                val_str
+            );
+        }
+
+        putchar('\n');
     }
 }
 
