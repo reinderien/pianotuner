@@ -12,6 +12,11 @@
 #define SUBDEV_NO 0
 #define NAME_SIZE 16
 
+#define AGC false
+
+// Out of 16
+#define VOLUME 8
+
 // 2**(1/12)
 #define SEMI 1.0594630943592953
 
@@ -291,7 +296,6 @@ static void init_pcm(CaptureContext *restrict ctx)
     ctx->timeout_ms = ctx->timeout_us / 1000;
 
     check_snd(snd_pcm_hw_params(ctx->pcm, ctx->hwparams));
-    check_snd(snd_pcm_start(ctx->pcm));
 }
 
 
@@ -377,7 +381,7 @@ static void describe(const CaptureContext *restrict ctx)
 }
 
 
-static void describe_elems(const CaptureContext *restrict ctx)
+static void describe_set_elems(const CaptureContext *restrict ctx)
 {
     snd_ctl_elem_list_t *elements;
     snd_ctl_elem_list_alloca(&elements);
@@ -385,7 +389,9 @@ static void describe_elems(const CaptureContext *restrict ctx)
 
     int n_elements = snd_ctl_elem_list_get_count(elements);
     check_snd(snd_ctl_elem_list_alloc_space(elements, n_elements));
-    check_snd(snd_ctl_elem_list(ctx->ctl, elements));  // again?
+
+    // It's goofy that we have to call this a second time, but it's needed
+    check_snd(snd_ctl_elem_list(ctx->ctl, elements));
     assert(n_elements == snd_ctl_elem_list_get_count(elements));
 
 	snd_ctl_elem_id_t *id;
@@ -395,10 +401,12 @@ static void describe_elems(const CaptureContext *restrict ctx)
     snd_ctl_elem_info_t *elem;
 	snd_ctl_elem_info_alloca(&elem);
 	assert(elem);
-	
+
     snd_ctl_elem_value_t *value;
 	snd_ctl_elem_value_alloca(&value);
 	assert(value);
+
+	bool vol_set = false, agc_set = false;
 
 	puts(
         "Control elements ---------------------------------------------------\n"
@@ -444,7 +452,10 @@ static void describe_elems(const CaptureContext *restrict ctx)
             strncpy(step, "<non-integer>", 32);
         }
 
-        bool readable = snd_ctl_elem_info_is_readable(elem);
+        const char *name = snd_ctl_elem_info_get_name(elem);
+        bool readable = snd_ctl_elem_info_is_readable(elem),
+             writable = snd_ctl_elem_info_is_writable(elem);
+        const int index = snd_ctl_elem_info_get_index(elem);
 
         printf(
             "  name       : %s\n"
@@ -474,7 +485,7 @@ static void describe_elems(const CaptureContext *restrict ctx)
             "  tlv readable    : %d\n"
             "  tlv writeable   : %d\n"
             ,
-            snd_ctl_elem_info_get_name(elem),
+            name,
             snd_ctl_elem_type_name(
                 snd_ctl_elem_info_get_type(elem)
             ),
@@ -484,7 +495,7 @@ static void describe_elems(const CaptureContext *restrict ctx)
             snd_ctl_elem_info_get_subdevice(elem),
             snd_ctl_elem_info_get_dimension(elem, e),
             snd_ctl_elem_info_get_dimensions(elem),
-            snd_ctl_elem_info_get_index(elem),
+            index,
             snd_ctl_elem_iface_name(
                 snd_ctl_elem_info_get_interface(elem)
             ),
@@ -499,20 +510,43 @@ static void describe_elems(const CaptureContext *restrict ctx)
             snd_ctl_elem_info_is_owner(elem),
             snd_ctl_elem_info_is_user(elem),
             readable,
-            snd_ctl_elem_info_is_writable(elem),
+            writable,
             snd_ctl_elem_info_is_volatile(elem),
             snd_ctl_elem_info_is_tlv_commandable(elem),
             snd_ctl_elem_info_is_tlv_readable(elem),
             snd_ctl_elem_info_is_tlv_writable(elem)
         );
 
+        snd_ctl_elem_value_set_id(value, id);
+
+        bool is_agc = false, is_vol = false;
+        if (!strcmp(name, "Auto Gain Control"))
+            is_agc = true;
+        else if (!strcmp(name, "Mic Capture Volume"))
+            is_vol = true;
+        if (is_vol || is_agc)
+        {
+            assert(writable);
+
+            if (is_vol)
+            {
+                snd_ctl_elem_value_set_integer(value, index, VOLUME);
+                vol_set = true;
+            }
+            else if (is_agc)
+            {
+                snd_ctl_elem_value_set_boolean(value, index, AGC);
+                agc_set = true;
+            }
+
+            check_snd(snd_ctl_elem_write(ctx->ctl, value));
+        }
+
         if (readable)
         {
-            snd_ctl_elem_value_set_id(value, id);
             check_snd(snd_ctl_elem_read(ctx->ctl, value));
 
             char val_str[64];
-            const int index = 0;
 
             switch (type)
             {
@@ -522,12 +556,14 @@ static void describe_elems(const CaptureContext *restrict ctx)
                     snd_ctl_elem_value_get_integer(value, index)
                 );
                 break;
+
             case SND_CTL_ELEM_TYPE_INTEGER64:
                 snprintf(
                     val_str, 64, "%lld",
                     snd_ctl_elem_value_get_integer64(value, index)
                 );
                 break;
+
             case SND_CTL_ELEM_TYPE_BOOLEAN:
                 strncpy(
                     val_str,
@@ -536,6 +572,7 @@ static void describe_elems(const CaptureContext *restrict ctx)
                     64
                 );
                 break;
+
             default:
                 strncpy(val_str, "Unsupported type", 64);
                 break;
@@ -549,6 +586,9 @@ static void describe_elems(const CaptureContext *restrict ctx)
 
         putchar('\n');
     }
+
+    assert(vol_set);
+    assert(agc_set);
 }
 
 
@@ -570,7 +610,9 @@ CaptureContext *capture_init(void)
     enumerate(ctx);
     init_pcm(ctx);
     describe(ctx);
-    describe_elems(ctx);
+    describe_set_elems(ctx);
+
+    check_snd(snd_pcm_start(ctx->pcm));
 
     return ctx;
 }
