@@ -103,19 +103,14 @@ static const char *snd_pcm_subclass_name(snd_pcm_subclass_t subclass)
 
 static const char *snd_ctl_type_name(snd_ctl_type_t type)
 {
-    switch (type)
+    static const char *types[] =
     {
-        case SND_CTL_TYPE_HW:
-            return "HW";
-        case SND_CTL_TYPE_SHM:
-            return "SHM";
-        case SND_CTL_TYPE_INET:
-            return "INET";
-        case SND_CTL_TYPE_EXT:
-            return "EXT";
-        default:
-            assert(false);
-    }
+        "HW",
+        "SHM",
+        "INET",
+        "EXT"
+    };
+    return types[type];
 }
 
 
@@ -314,23 +309,25 @@ static void describe(const CaptureContext *restrict ctx)
     check_snd(snd_ctl_get_power_state(ctx->ctl, &pow_state));
     printf(
         "\n"
-        "Control ----------\n"
+        "Control ------------------------------------------------------------\n"
         "  name        : %s\n"
         "  type        : %s\n"
-        "  power state : %s\n\n",
+        "  power state : %s\n"
+        "\n",
         snd_ctl_name(ctx->ctl),
         snd_ctl_type_name(snd_ctl_type(ctx->ctl)),
         snd_ctl_power_state_name(pow_state)
     );
 
     printf(
-        "Card -------------\n"
+        "Card ---------------------------------------------------------------\n"
         "  id         : %s\n"
         "  components : %s\n"
         "  driver     : %s\n"
         "  short name : %s\n"
         "  long name  : %s\n"
-        "  mixer      : %s\n\n",
+        "  mixer      : %s\n"
+        "\n",
         snd_ctl_card_info_get_id(ctx->card_info),
         snd_ctl_card_info_get_components(ctx->card_info),
         snd_ctl_card_info_get_driver(ctx->card_info),
@@ -340,7 +337,7 @@ static void describe(const CaptureContext *restrict ctx)
     );
 
     printf(
-        "PCM --------------\n"
+        "PCM ----------------------------------------------------------------\n"
         "  card        : %d\n"
         "  device      : %d\n"
         "  subdev index/avail/total : %d/%d/%d\n"
@@ -348,7 +345,8 @@ static void describe(const CaptureContext *restrict ctx)
         "  id          : %s\n"
         "  subdev name : %s\n"
         "  class       : %s\n"
-        "  subclass    : %s\n\n",
+        "  subclass    : %s\n"
+        "\n",
         snd_pcm_info_get_card(ctx->pcm_info),
         snd_pcm_info_get_device(ctx->pcm_info),
         snd_pcm_info_get_subdevice(ctx->pcm_info),
@@ -365,21 +363,149 @@ static void describe(const CaptureContext *restrict ctx)
         )
     );
 
-    puts("Parameters -------");
+    puts(
+        "Parameters ---------------------------------------------------------");
     check_snd(snd_pcm_dump(ctx->pcm, ctx->output));
 
     printf(
         "\n"
-        "Constraints ------\n"
-         "  period : %u > %d\n"
-         "  rate   : %u > %d\n"
-         "  fmin   : %.1f < %.1f\n"
-         "  fmax   : %d > %d\n\n",
-         ctx->period, (int)(ctx->rate / FMIN),
-         ctx->rate, (int)(2*FMAX),
-         ctx->rate / (float)ctx->period, FMIN,
-         ctx->rate/2, (int)FMAX
+        "Constraints --------------------------------------------------------\n"
+        "  period : %u > %d\n"
+        "  rate   : %u > %d\n"
+        "  fmin   : %.1f < %.1f\n"
+        "  fmax   : %d > %d\n"
+        "\n",
+        ctx->period, (int)(ctx->rate / FMIN),
+        ctx->rate, (int)(2*FMAX),
+        ctx->rate / (float)ctx->period, FMIN,
+        ctx->rate/2, (int)FMAX
     );
+}
+
+
+static void describe_elems(const CaptureContext *restrict ctx)
+{
+    snd_ctl_elem_list_t *elements;
+    snd_ctl_elem_list_alloca(&elements);
+    check_snd(snd_ctl_elem_list(ctx->ctl, elements));
+
+    int n_elements = snd_ctl_elem_list_get_count(elements);
+    check_snd(snd_ctl_elem_list_alloc_space(elements, n_elements));
+    check_snd(snd_ctl_elem_list(ctx->ctl, elements));  // again?
+    assert(n_elements == snd_ctl_elem_list_get_count(elements));
+
+	snd_ctl_elem_id_t *id;
+	snd_ctl_elem_id_alloca(&id);
+	assert(id);
+
+    snd_ctl_elem_info_t *elem;
+	snd_ctl_elem_info_alloca(&elem);
+	assert(elem);
+
+	puts(
+        "Control elements ---------------------------------------------------\n"
+    );
+
+    for (int e = 0; e < n_elements; e++)
+    {
+        snd_ctl_elem_list_get_id(elements, e, id);
+        snd_ctl_elem_info_set_id(elem, id);
+	    check_snd(snd_ctl_elem_info(ctx->ctl, elem));
+
+	    snd_ctl_elem_type_t type = snd_ctl_elem_info_get_type(elem);
+
+	    const char *item_name;
+	    unsigned items;
+	    if (type == SND_CTL_ELEM_TYPE_ENUMERATED)
+	    {
+	        item_name = snd_ctl_elem_info_get_item_name(elem);
+	        items = snd_ctl_elem_info_get_items(elem);
+        }
+        else
+        {
+            item_name = "<non-enumerated>";
+            items = 0;
+        }
+
+        char min[32], max[32], step[32];
+        switch (type)
+        {
+        case SND_CTL_ELEM_TYPE_INTEGER64:
+            snprintf(min, 32, "%lld", snd_ctl_elem_info_get_min64(elem));
+            snprintf(max, 32, "%lld", snd_ctl_elem_info_get_max64(elem));
+            snprintf(step, 32, "%lld", snd_ctl_elem_info_get_step64(elem));
+            break;
+        case SND_CTL_ELEM_TYPE_INTEGER:
+            snprintf(min, 32, "%ld", snd_ctl_elem_info_get_min(elem));
+            snprintf(max, 32, "%ld", snd_ctl_elem_info_get_max(elem));
+            snprintf(step, 32, "%ld", snd_ctl_elem_info_get_step(elem));
+            break;
+        default:
+            strncpy(min, "<non-integer>", 32);
+            strncpy(max, "<non-integer>", 32);
+            strncpy(step, "<non-integer>", 32);
+        }
+
+        printf(
+            "  name       : %s\n"
+            "  type       : %s\n"
+            "  numid      : %u\n"
+            "  count      : %u\n"
+            "  device     : %u\n"
+            "  subdevice  : %u\n"
+            "  dimension  : %d\n"
+            "  dimensions : %d\n"
+            "  index      : %u\n"
+            "  interface  : %s\n"
+            "  item name  : %s\n"
+            "  items      : %u\n"
+            "  min        : %s\n"
+            "  max        : %s\n"
+            "  step       : %s\n"
+            "  owner      : %d\n"
+            "  inactive   : %d\n"
+            "  locked     : %d\n"
+            "  is owner        : %d\n"
+            "  is user         : %d\n"
+            "  is readable     : %d\n"
+            "  is writable     : %d\n"
+            "  is volatile     : %d\n"
+            "  tlv commandable : %d\n"
+            "  tlv readable    : %d\n"
+            "  tlv writeable   : %d\n"
+            "\n",
+            snd_ctl_elem_info_get_name(elem),
+            snd_ctl_elem_type_name(
+                snd_ctl_elem_info_get_type(elem)
+            ),
+            snd_ctl_elem_info_get_numid(elem),
+            snd_ctl_elem_info_get_count(elem),
+            snd_ctl_elem_info_get_device(elem),
+            snd_ctl_elem_info_get_subdevice(elem),
+            snd_ctl_elem_info_get_dimension(elem, e),
+            snd_ctl_elem_info_get_dimensions(elem),
+            snd_ctl_elem_info_get_index(elem),
+            snd_ctl_elem_iface_name(
+                snd_ctl_elem_info_get_interface(elem)
+            ),
+            item_name,
+            items,
+            min,
+            max,
+            step,
+            snd_ctl_elem_info_get_owner(elem),
+            snd_ctl_elem_info_is_inactive(elem),
+            snd_ctl_elem_info_is_locked(elem),
+            snd_ctl_elem_info_is_owner(elem),
+            snd_ctl_elem_info_is_user(elem),
+            snd_ctl_elem_info_is_readable(elem),
+            snd_ctl_elem_info_is_writable(elem),
+            snd_ctl_elem_info_is_volatile(elem),
+            snd_ctl_elem_info_is_tlv_commandable(elem),
+            snd_ctl_elem_info_is_tlv_readable(elem),
+            snd_ctl_elem_info_is_tlv_writable(elem)
+        );
+    }
 }
 
 
@@ -401,6 +527,7 @@ CaptureContext *capture_init(void)
     enumerate(ctx);
     init_pcm(ctx);
     describe(ctx);
+    describe_elems(ctx);
 
     return ctx;
 }
