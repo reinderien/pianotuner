@@ -264,6 +264,7 @@ static void init_pcm(CaptureContext *restrict ctx)
     ctx->timeout_ms = ctx->timeout_us / 1000;
 
     check_snd(snd_pcm_hw_params(ctx->pcm, ctx->hwparams));
+    check_snd(snd_pcm_start(ctx->pcm));
 }
 
 
@@ -339,7 +340,7 @@ CaptureContext *capture_init(void)
     CaptureContext *ctx = malloc(sizeof(CaptureContext));
     assert(ctx);
 
-    ctx->restart = true;
+    ctx->restart = false;
     ctx->prev_state = -1;  // The first state will always be "new"
 
     const bool close = false;
