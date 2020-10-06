@@ -12,14 +12,14 @@ static CaptureContext *capture;
 
 static void cleanup()
 {
+    putchar('\n'); // after the \r from consume()
     capture_deinit(capture);
 }
 
 
 static void handle_sigint(int signal)
 {
-    cleanup();
-    exit(0);
+    exit(0); // will call cleanup anyway
 }
 
 
@@ -58,9 +58,5 @@ int main(int argc, const char **argv)
 
     while (true)
         capture_period(capture, consume);
-
-    putchar('\n');
-
-    return 0;
 }
 
