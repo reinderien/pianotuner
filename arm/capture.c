@@ -34,7 +34,7 @@ struct CaptureContextTag
     char card_name[NAME_SIZE];
 
     snd_output_t *output;
-    snd_ctl_t *card_ctl;
+    snd_ctl_t *ctl;
     snd_ctl_card_info_t *card_info;
 	snd_pcm_info_t *pcm_info;
 	snd_pcm_t *pcm;
@@ -101,6 +101,44 @@ static const char *snd_pcm_subclass_name(snd_pcm_subclass_t subclass)
 }
 
 
+static const char *snd_ctl_type_name(snd_ctl_type_t type)
+{
+    switch (type)
+    {
+        case SND_CTL_TYPE_HW:
+            return "HW";
+        case SND_CTL_TYPE_SHM:
+            return "SHM";
+        case SND_CTL_TYPE_INET:
+            return "INET";
+        case SND_CTL_TYPE_EXT:
+            return "EXT";
+        default:
+            assert(false);
+    }
+}
+
+
+static const char *snd_ctl_power_state_name(unsigned state)
+{
+    switch (state)
+    {
+        case SND_CTL_POWER_D0:
+            return "D0";
+        case SND_CTL_POWER_D1:
+            return "D1";
+        case SND_CTL_POWER_D2:
+            return "D2";
+        case SND_CTL_POWER_D3hot:
+            return "D3hot";
+        case SND_CTL_POWER_D3cold:
+            return "D3cold";
+        default:
+            assert(false);
+    }
+}
+
+
 static void enumerate(CaptureContext *restrict ctx)
 {
     puts("Enumerating devices...");
@@ -124,7 +162,7 @@ static void enumerate(CaptureContext *restrict ctx)
             ctx->card_no
         ) > 0);
         check_snd(snd_ctl_open(
-            &ctx->card_ctl,
+            &ctx->ctl,
             ctx->card_name,
             SND_CTL_READONLY
         ));
@@ -132,7 +170,7 @@ static void enumerate(CaptureContext *restrict ctx)
         // Iterate through PCM devices on this card
         for (ctx->dev_no = -1;;)
         {
-            check_snd(snd_ctl_pcm_next_device(ctx->card_ctl, &ctx->dev_no));
+            check_snd(snd_ctl_pcm_next_device(ctx->ctl, &ctx->dev_no));
             if (ctx->dev_no < 0)
                 break;
 
@@ -143,7 +181,7 @@ static void enumerate(CaptureContext *restrict ctx)
 			snd_pcm_info_set_subdevice(ctx->pcm_info, SUBDEV_NO);
 			snd_pcm_info_set_stream(ctx->pcm_info, SND_PCM_STREAM_CAPTURE);
 			
-			int err = snd_ctl_pcm_info(ctx->card_ctl, ctx->pcm_info);
+			int err = snd_ctl_pcm_info(ctx->ctl, ctx->pcm_info);
             switch (err)
             {
                 case 0:
@@ -160,7 +198,7 @@ static void enumerate(CaptureContext *restrict ctx)
             }
         }
 
-        check_snd(snd_ctl_close(ctx->card_ctl));
+        check_snd(snd_ctl_close(ctx->ctl));
     }
 
     fputs("There are no capture devices\n", stderr);
@@ -270,19 +308,29 @@ static void init_pcm(CaptureContext *restrict ctx)
 
 static void describe(const CaptureContext *restrict ctx)
 {
-    check_snd(snd_ctl_card_info(ctx->card_ctl, ctx->card_info));
+    check_snd(snd_ctl_card_info(ctx->ctl, ctx->card_info));
 
+    unsigned pow_state;
+    check_snd(snd_ctl_get_power_state(ctx->ctl, &pow_state));
     printf(
         "\n"
+        "Control ----------\n"
+        "  name        : %s\n"
+        "  type        : %s\n"
+        "  power state : %s\n\n",
+        snd_ctl_name(ctx->ctl),
+        snd_ctl_type_name(snd_ctl_type(ctx->ctl)),
+        snd_ctl_power_state_name(pow_state)
+    );
+
+    printf(
         "Card -------------\n"
-        "  name       : %s\n"
         "  id         : %s\n"
         "  components : %s\n"
         "  driver     : %s\n"
         "  short name : %s\n"
         "  long name  : %s\n"
         "  mixer      : %s\n\n",
-        ctx->card_name,
         snd_ctl_card_info_get_id(ctx->card_info),
         snd_ctl_card_info_get_components(ctx->card_info),
         snd_ctl_card_info_get_driver(ctx->card_info),
@@ -361,7 +409,7 @@ CaptureContext *capture_init(void)
 void capture_deinit(CaptureContext *ctx)
 {
     warn_snd(snd_pcm_close(ctx->pcm));
-    warn_snd(snd_ctl_close(ctx->card_ctl));
+    warn_snd(snd_ctl_close(ctx->ctl));
     snd_config_update_free_global();
 
     free(ctx->card_info);
