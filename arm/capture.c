@@ -12,6 +12,14 @@
 #define SUBDEV_NO 0
 #define NAME_SIZE 16
 
+// 2**(1/12)
+#define SEMI 1.0594630943592953
+
+#define A440_OCTAVES 4
+#define FMIN (440. / (1 << A440_OCTAVES))
+#define N_NOTES 88
+#define FMAX (FMIN * (1 << (N_NOTES/12)) *SEMI*SEMI*SEMI)
+
 
 struct CaptureContextTag
 {
@@ -160,15 +168,18 @@ static void init_pcm(CaptureContext *ctx)
         ctx->dev_no,
         SUBDEV_NO
     ) > 0);
+
+    const int mode = 0;
     check_snd(snd_pcm_open(
         &ctx->pcm,
         ctx->card_name,
         SND_PCM_STREAM_CAPTURE,
-        0 // mode
+        mode
     ));
 
     ctx->hwparams = malloc(snd_pcm_hw_params_sizeof());
     assert(ctx->hwparams);
+
     check_snd(snd_pcm_hw_params_any(ctx->pcm, ctx->hwparams));
 
     check_snd(snd_pcm_hw_params_set_access(
@@ -196,9 +207,16 @@ static void init_pcm(CaptureContext *ctx)
         ctx->pcm, ctx->hwparams, false
     ));
 
-    // Use maximum sampling rate; works out to 48,000
-    int direction;
-    check_snd(snd_pcm_hw_params_set_rate_last(
+    // Set minimum rate based on Nyquist frequency of max note
+    int direction = 0;
+    ctx->rate = 2*FMIN;
+    check_snd(snd_pcm_hw_params_set_rate_min(
+        ctx->pcm,
+        ctx->hwparams,
+        &ctx->rate,
+        &direction
+    ));
+    check_snd(snd_pcm_hw_params_set_rate_first(
         ctx->pcm,
         ctx->hwparams,
         &ctx->rate,
@@ -267,6 +285,13 @@ static void describe(const CaptureContext *ctx)
 
     puts("Parameters -------");
     check_snd(snd_pcm_dump(ctx->pcm, ctx->output));
+
+    printf("\n"
+         "Constraints ------\n"
+         "  rate : %u > %.3f\n",
+         ctx->rate,
+         2*FMAX
+    );
 }
 
 
