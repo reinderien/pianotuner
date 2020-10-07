@@ -211,7 +211,12 @@ static void init_pcm(CaptureContext *restrict ctx)
         SUBDEV_NO
     ) > 0);
 
-    const int mode = 0;
+    const int mode =
+          SND_PCM_NO_AUTO_RESAMPLE
+        | SND_PCM_NO_AUTO_CHANNELS
+        | SND_PCM_NO_AUTO_FORMAT
+        | SND_PCM_NO_SOFTVOL
+    ;
     check_snd(snd_pcm_open(
         &ctx->pcm,
         ctx->card_name,
