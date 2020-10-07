@@ -14,8 +14,8 @@
 
 #define AGC false
 
-// Out of 16
-#define VOLUME 8
+// Has no effect?
+#define VOLUME 0.75
 
 // 2**(1/12)
 #define SEMI 1.0594630943592953
@@ -434,11 +434,13 @@ static void describe_set_elems(const CaptureContext *restrict ctx)
         }
 
         char min[32], max[32], step[32];
+        long max_int;
         switch (type)
         {
         case SND_CTL_ELEM_TYPE_INTEGER:
+            max_int = snd_ctl_elem_info_get_max(elem);
             snprintf(min, 32, "%ld", snd_ctl_elem_info_get_min(elem));
-            snprintf(max, 32, "%ld", snd_ctl_elem_info_get_max(elem));
+            snprintf(max, 32, "%ld", max_int);
             snprintf(step, 32, "%ld", snd_ctl_elem_info_get_step(elem));
             break;
         case SND_CTL_ELEM_TYPE_INTEGER64:
@@ -530,7 +532,11 @@ static void describe_set_elems(const CaptureContext *restrict ctx)
 
             if (is_vol)
             {
-                snd_ctl_elem_value_set_integer(value, index, VOLUME);
+                snd_ctl_elem_value_set_integer(
+                    value,
+                    index,
+                    (long)(VOLUME * max_int)
+                );
                 vol_set = true;
             }
             else if (is_agc)
