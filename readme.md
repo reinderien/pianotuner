@@ -1,15 +1,15 @@
-= Custom Piano Tuner
+# Custom Piano Tuner
 
-== Environment
+## Environment
 
-=== apt packages
+### apt packages
 
 - libasound2-dev (for compilation only)
 - libasound2 - underlying ALSA support
 
 Todo: move to headless mode and blow away a pile of unneeded packages.
 
-=== /boot/config.txt
+### /boot/config.txt
 
 ```
 # See https://rpf.io/configtxt
@@ -18,7 +18,7 @@ dtparam=audio=on
 # todo: turn off video
 ```
 
-=== USB device details
+### USB device details
 
 `dmesg`:
 
@@ -61,7 +61,7 @@ plughw:CARD=Device,DEV=0
     Hardware device with all software conversions
 ```
 
-=== Input test
+### Input test
 
 ```
 $ arecord -D hw:CARD=Device,DEV=0 -c 1 -f S16_LE -r 48000 -d 1 -v output-test
