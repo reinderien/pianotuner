@@ -3,10 +3,18 @@
 export
 
 alsa_inc = /usr/include/alsa
+gsl_inc = /usr/include/gsl
 gcc = $(shell which gcc)
+
 objs = main.o capture.o
-cflags=$(shell pkg-config --cflags alsa) -D_GNU_SOURCE -Wall -std=c18 -ggdb
-ldflags=$(shell pkg-config --libs alsa)
+
+cflags = $(shell pkg-config --cflags alsa) $\
+    -I/usr/include/gsl $\
+    -D_GNU_SOURCE -DGSL_DISABLE_DEPRECATED $\
+    -Wall -std=c18 -ggdb
+
+ldflags = $(shell pkg-config --libs alsa) $\
+          $(shell pkg-config --libs gsl) -L:libatlas.so.3
 
 $(info gcc=${gcc})
 $(info cflags=${cflags})
@@ -20,6 +28,9 @@ $(gcc):
 
 $(alsa_inc):
 	apt install libasound2-dev
+
+$(gsl_inc):
+	apt install libgsl-dev libatlas3-base
 
 pianotuner: $(objs)
 	$$gcc $$ldflags -o $@ $^
