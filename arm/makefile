@@ -1,20 +1,20 @@
 #!/usr/bin/make -f
 
-export
+# Requirements:
+# libasound2-dev libatlas-base-dev libgsl-dev
+# Also recommended: libasound2-dbgsym libgsl-dbg
 
-alsa_inc = /usr/include/alsa
-gsl_inc = /usr/include/gsl
-gcc = $(shell which gcc)
+export
 
 objs = main.o capture.o
 
-cflags = $(shell pkg-config --cflags alsa) $\
-    -I/usr/include/gsl $\
-    -D_GNU_SOURCE -DGSL_DISABLE_DEPRECATED $\
-    -Wall -std=c18 -ggdb
+pkg = pkg-config --cflags alsa blas-atlas gsl
 
-ldflags = $(shell pkg-config --libs alsa) $\
-          $(shell pkg-config --libs gsl) -L:libatlas.so.3
+cflags = $(shell ${pkg} --cflags) $\
+		-D_GNU_SOURCE -DGSL_DISABLE_DEPRECATED $\
+		-Wall -std=c18 -ggdb
+
+ldflags = $(shell ${pkg} --libs)
 
 $(info gcc=${gcc})
 $(info cflags=${cflags})
@@ -23,20 +23,11 @@ $(info ldflags=${ldflags})
 
 all: pianotuner
 
-$(gcc):
-	apt install gcc
-
-$(alsa_inc):
-	apt install libasound2-dev
-
-$(gsl_inc):
-	apt install libgsl-dev libatlas3-base
-
 pianotuner: $(objs)
-	$$gcc $$ldflags -o $@ $^
+	gcc $$ldflags -o $@ $^
 
-%.o: %.c $(gcc) $(alsa_inc) makefile
-	$$gcc $$cflags -c -o $@ $<
+%.o: %.c makefile
+	gcc $$cflags -c -o $@ $<
 
 clean:
 	git clean -Xf
