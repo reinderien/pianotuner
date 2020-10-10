@@ -16,7 +16,6 @@ cflags = $(shell ${pkg} --cflags) $\
 
 ldflags = $(shell ${pkg} --libs)
 
-$(info gcc=${gcc})
 $(info cflags=${cflags})
 $(info ldflags=${ldflags})
 
