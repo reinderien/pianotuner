@@ -8,6 +8,7 @@
 
 #include "capture.h"
 
+#define EXCRUCIATING_DETAIL 0
 
 #define SUBDEV_NO 0
 #define NAME_SIZE 16
@@ -425,6 +426,7 @@ static void describe_set_elems(const CaptureContext *restrict ctx)
 
 	    snd_ctl_elem_type_t type = snd_ctl_elem_info_get_type(elem);
 
+#if EXCRUCIATING_DETAIL
 	    const char *item_name;
 	    unsigned items;
 	    if (type == SND_CTL_ELEM_TYPE_ENUMERATED)
@@ -437,6 +439,7 @@ static void describe_set_elems(const CaptureContext *restrict ctx)
             item_name = "<non-enumerated>";
             items = 0;
         }
+#endif
 
         char min[32], max[32], step[32];
         long max_int;
@@ -468,60 +471,77 @@ static void describe_set_elems(const CaptureContext *restrict ctx)
             "  name       : %s\n"
             "  type       : %s\n"
             "  numid      : %u\n"
-            "  count      : %u\n"
-            "  device     : %u\n"
-            "  subdevice  : %u\n"
-            "  dimension  : %d\n"
-            "  dimensions : %d\n"
-            "  index      : %u\n"
+            #if EXCRUCIATING_DETAIL
+                "  count      : %u\n"
+                "  device     : %u\n"
+                "  subdevice  : %u\n"
+                "  dimension  : %d\n"
+                "  dimensions : %d\n"
+                "  index      : %u\n"
+            #endif
             "  interface  : %s\n"
-            "  item name  : %s\n"
-            "  items      : %u\n"
+            #if EXCRUCIATING_DETAIL
+                "  item name  : %s\n"
+                "  items      : %u\n"
+            #endif
             "  min        : %s\n"
             "  max        : %s\n"
-            "  step       : %s\n"
-            "  owner      : %d\n"
-            "  inactive   : %d\n"
-            "  locked     : %d\n"
-            "  is owner        : %d\n"
-            "  is user         : %d\n"
+            #if EXCRUCIATING_DETAIL
+                "  step       : %s\n"
+                "  owner      : %d\n"
+                "  inactive   : %d\n"
+                "  locked     : %d\n"
+                "  is owner        : %d\n"
+                "  is user         : %d\n"
+            #endif
             "  is readable     : %d\n"
             "  is writable     : %d\n"
-            "  is volatile     : %d\n"
-            "  tlv commandable : %d\n"
-            "  tlv readable    : %d\n"
-            "  tlv writeable   : %d\n"
+            #if EXCRUCIATING_DETAIL
+                "  is volatile     : %d\n"
+                "  tlv commandable : %d\n"
+                "  tlv readable    : %d\n"
+                "  tlv writeable   : %d\n"
+            #endif
             ,
             name,
             snd_ctl_elem_type_name(
                 snd_ctl_elem_info_get_type(elem)
             ),
             snd_ctl_elem_info_get_numid(elem),
-            snd_ctl_elem_info_get_count(elem),
-            snd_ctl_elem_info_get_device(elem),
-            snd_ctl_elem_info_get_subdevice(elem),
-            snd_ctl_elem_info_get_dimension(elem, e),
-            snd_ctl_elem_info_get_dimensions(elem),
-            index,
+            #if EXCRUCIATING_DETAIL
+                snd_ctl_elem_info_get_count(elem),
+                snd_ctl_elem_info_get_device(elem),
+                snd_ctl_elem_info_get_subdevice(elem),
+                snd_ctl_elem_info_get_dimension(elem, e),
+                snd_ctl_elem_info_get_dimensions(elem),
+                index,
+            #endif
             snd_ctl_elem_iface_name(
                 snd_ctl_elem_info_get_interface(elem)
             ),
-            item_name,
-            items,
+            #if EXCRUCIATING_DETAIL
+                item_name,
+                items,
+            #endif
             min,
             max,
-            step,
-            snd_ctl_elem_info_get_owner(elem),
-            snd_ctl_elem_info_is_inactive(elem),
-            snd_ctl_elem_info_is_locked(elem),
-            snd_ctl_elem_info_is_owner(elem),
-            snd_ctl_elem_info_is_user(elem),
+            #if EXCRUCIATING_DETAIL
+                step,
+                snd_ctl_elem_info_get_owner(elem),
+                snd_ctl_elem_info_is_inactive(elem),
+                snd_ctl_elem_info_is_locked(elem),
+                snd_ctl_elem_info_is_owner(elem),
+                snd_ctl_elem_info_is_user(elem),
+            #endif
             readable,
-            writable,
-            snd_ctl_elem_info_is_volatile(elem),
-            snd_ctl_elem_info_is_tlv_commandable(elem),
-            snd_ctl_elem_info_is_tlv_readable(elem),
-            snd_ctl_elem_info_is_tlv_writable(elem)
+            writable
+            #if EXCRUCIATING_DETAIL
+                ,
+                snd_ctl_elem_info_is_volatile(elem),
+                snd_ctl_elem_info_is_tlv_commandable(elem),
+                snd_ctl_elem_info_is_tlv_readable(elem),
+                snd_ctl_elem_info_is_tlv_writable(elem)
+            #endif
         );
 
         snd_ctl_elem_value_set_id(value, id);
