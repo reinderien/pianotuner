@@ -6,7 +6,7 @@
 
 export
 
-objs = main.o capture.o
+objs = main.o capture.o freq.o
 
 pkg = pkg-config --cflags alsa blas-atlas gsl
 
@@ -16,7 +16,7 @@ cflags = $(shell ${pkg} --cflags) $\
 ifdef DEBUG
 	cflags += -ggdb
 else
-	cflags += -s -O3 -fomit-frame-pointer -march=native
+	cflags += -s -O3 -flto -fomit-frame-pointer -march=native
 endif
 
 ldflags = $(shell ${pkg} --libs) -Wl,--warn-common
