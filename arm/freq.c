@@ -1,7 +1,11 @@
 #include <assert.h>
 #include <limits.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include <gsl/block/gsl_block.h>
+#include <gsl/vector/gsl_vector.h>
 
 #include "freq.h"
 
@@ -44,8 +48,29 @@ static void dump_one(const int16_t *restrict samples, int n_samples)
 }
 
 
+
+static void autocorrelate(const int16_t *samples, int n_samples)
+{
+    gsl_block_short input_block = {
+        .data = samples,
+        .size = n_samples
+    };
+
+    gsl_vector_short v1 = {
+        .data = samples,
+        .size = n_samples,
+        .stride = 1,
+        .block = &input_block,
+        .owner = false
+    },
+    v2 = v1;
+}
+
+
 void consume(const int16_t *samples, int n_samples)
 {
+    autocorrelate(samples, n_samples);
+
 #if METER
     meter(samples, n_samples);
 #endif
