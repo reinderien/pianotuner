@@ -10,9 +10,8 @@
 #define DUMP_ONE 1
 
 
-void consume(const int16_t *samples, int n_samples)
+static void meter(const int16_t *restrict samples, int n_samples)
 {
-#if METER
     int max = INT_MIN, sum = 0, asum = 0;
     for (int i = 0; i < n_samples; i++)
     {
@@ -24,15 +23,17 @@ void consume(const int16_t *samples, int n_samples)
     }
 
     printf(
-        "max=%-6d ave=%-6d pow=%-6d\r",
+        "max=%-6d ave=%-6.1f pow=%-6.1f\r",
         max,
-        sum / n_samples,
-        asum / n_samples
+        sum / (float)n_samples,
+        asum / (float)n_samples
     );
     fflush(stdout);
-#endif
+}
 
-#if DUMP_ONE
+
+static void dump_one(const int16_t *restrict samples, int n_samples)
+{
     FILE *f = fopen("dump.csv", "w");
     assert(f);
     fputs("Index,V\n", f);
@@ -40,7 +41,16 @@ void consume(const int16_t *samples, int n_samples)
         fprintf(f, "%d,%d\n", i, samples[i]);
     assert(!fclose(f));
     exit(0);
-#endif
 }
 
+
+void consume(const int16_t *samples, int n_samples)
+{
+#if METER
+    meter(samples, n_samples);
+#endif
+#if DUMP_ONE
+    dump_one(samples, n_samples);
+#endif
+}
 
