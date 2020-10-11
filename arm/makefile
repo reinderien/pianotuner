@@ -11,10 +11,18 @@ objs = main.o capture.o
 pkg = pkg-config --cflags alsa blas-atlas gsl
 
 cflags = $(shell ${pkg} --cflags) $\
-		-D_GNU_SOURCE -DGSL_DISABLE_DEPRECATED $\
-		-Wall -std=c18 -ggdb
+         -D_GNU_SOURCE -DGSL_DISABLE_DEPRECATED $\
+         -Wall -std=c18
+ifdef DEBUG
+	cflags += -ggdb
+else
+	cflags += -s -O3 -fomit-frame-pointer -march=native
+endif
 
-ldflags = $(shell ${pkg} --libs)
+ldflags = $(shell ${pkg} --libs) -Wl,--warn-common
+ifndef DEBUG
+	ldflags += -Wl,--relax,-O3
+endif
 
 $(info cflags=${cflags})
 $(info ldflags=${ldflags})
@@ -23,7 +31,7 @@ $(info ldflags=${ldflags})
 all: pianotuner
 
 pianotuner: $(objs)
-	gcc $$ldflags -o $@ $^
+	gcc $$cflags $$ldflags -o $@ $^
 
 %.o: %.c makefile
 	gcc $$cflags -c -o $@ $<
