@@ -442,7 +442,7 @@ static void describe_set_elems(const CaptureContext *restrict ctx)
 #endif
 
         char min[32], max[32], step[32];
-        long max_int;
+        long max_int = 0;
         switch (type)
         {
         case SND_CTL_ELEM_TYPE_INTEGER:
