@@ -49,16 +49,24 @@ static void dump_one(
 {
     FILE *f = fopen("dump.csv", "w");
     assert(f);
-    fputs("Index,V,f\n", f);
+    
+    fputs("Index,V,freq,AC\n", f);
+    
     for (int i = 0; i < N; i++)
-        fprintf(f, "%d,%d,%f\n", i, samples[i], output[i]);
+    {
+        fprintf(f, "%d,%d,", i, samples[i]);
+        if (i)
+            fprintf(f, "%f", 44100./i);
+        fprintf(f, ",%f\n", output[i]);
+    }
+    
     assert(!fclose(f));
     exit(0);
 }
 
 
 static void autocorrelate(
-    float *restrict input,
+    const float *restrict input,
     float *restrict output,
     int N
 )
