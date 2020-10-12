@@ -80,7 +80,7 @@ static int peak_start(
     float *restrict amin
 )
 {
-    const float peak_thresh = 0.5;
+    const float peak_thresh = 0.65;
     *amin = FLT_MAX;
 
     for (int i = 1; i < N; i++)
@@ -126,7 +126,7 @@ static int peak_top(
     *imax = istart;
 
     int i;
-    for (i = istart; i < N && i < *imax *3/2; i++)
+    for (i = istart; i < N && i < *imax *5/2; i++)
     {
         a2 = a1;
         a1 = a0;
@@ -140,9 +140,15 @@ static int peak_top(
             *a2max = a2;
             *a1max = a1;
             *a0max = a0;
-            *imax = i;
+            *imax = i-1;
         }   
     }
+    
+    #if DUMP_ONE
+    for (; i < N; i++)
+        output[i] = AC() / energy;
+    #endif
+    
     return i;
 }
 
@@ -229,8 +235,8 @@ static bool autocorrelate(
 #endif
 
 #if DUMP_ONE
-    if (istart < 40)
-        dump_one(output, istop, rate);
+    // Trap bad conditions here
+    dump_one(output, istop, rate);
     free(output);
 #endif
 
