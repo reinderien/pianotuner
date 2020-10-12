@@ -80,7 +80,7 @@ static int peak_start(
     float *restrict amin
 )
 {
-    const float peak_thresh = 0.25;
+    const float peak_thresh = 0.5;
     *amin = FLT_MAX;
 
     for (int i = 1; i < N; i++)
@@ -200,8 +200,8 @@ static bool autocorrelate(
     {
     #if METER
         printf(
-            "                                 "
-            "                                 ");
+            "                                          "
+            "                                          ");
     #endif
         return false;
     }
@@ -221,14 +221,16 @@ static bool autocorrelate(
     *freq = rate / (imax + delta);
 
 #if METER
+    float pd = a1max - amin;
     printf(
-        "amax=%5.2f istart=%4d imax=%4d istop=%4d delta=%5.2f f=%7.1f ",
-        a1max,      istart,    imax,    istop,    delta,      *freq
+        "amin=%5.2f amax=%5.2f istart=%4d imax=%4d istop=%4d delta=%5.2f pd=%5.2f f=%7.1f ",
+         amin,     a1max,      istart,    imax,    istop,    delta,      pd,     *freq
     );
 #endif
 
 #if DUMP_ONE
-    dump_one(output, N, rate);
+    if (istart < 40)
+        dump_one(output, istop, rate);
     free(output);
 #endif
 
