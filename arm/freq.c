@@ -41,7 +41,7 @@ static void meter(const sample_t *restrict samples, int n_samples)
 
 static void dump_one(
     const sample_t *restrict samples, 
-    const float *restrict buffer,
+    const float *restrict output,
     int n_samples
 )
 {
@@ -49,70 +49,66 @@ static void dump_one(
     assert(f);
     fputs("Index,V,f\n", f);
     for (int i = 0; i < n_samples; i++)
-        fprintf(f, "%d,%d,%f\n", i, samples[i], buffer[i]);
+        fprintf(f, "%d,%d,%f\n", i, samples[i], output[i]);
     assert(!fclose(f));
     exit(0);
 }
 
 
-static void autocorrelate(
+static void autocorrelate_l1(
     const sample_t *restrict samples, 
-    float *restrict buffer, 
-    int n_samples
+    float *restrict input,
+    float *restrict output,
+    int N
 )
 {
-    for (int i = 0; i < n_samples; i++)
-        buffer[i] = (float)samples[i];
+    for (int i = 0; i < N; i++)
+        input[i] = (float)samples[i];
 
     gsl_block_float input_block = {
-        .data = buffer,
-        .size = n_samples
+        .data = input,
+        .size = N
     };
 
-    gsl_vector_float x = {
-        .data = buffer,
-        .size = n_samples,
+    gsl_vector_float x1 = {
+        .data = input,
+        .size = N,
         .stride = 1,
         .block = &input_block,
         .owner = false
-    };
-    
-    const gsl_matrix_float A = {
-        .size1 = n_samples,
-        .size2 = n_samples,
-        .tda = 1,  // This is a hack to re-use a single buffer
-        .data = buffer,
-        .block = &input_block,
-        .owner = false
-    };
-    
-    int err = gsl_blas_strmv(
-        CblasLower,
-        CblasNoTrans,
-        CblasNonUnit,
-        &A, &x
-    );
-    if (err)
+    }, x2 = x1;
+
+    for (int i = 0; i < N; i++)
     {
-        fprintf(
-            stderr, "GSL failure: %d = %s\n", err, gsl_strerror(err)
-        );
+        int err = gsl_blas_sdot(&x1, &x2, output + i);
+        if (err)
+        {
+            fprintf(
+                stderr, "GSL failure: %d = %s\n", err, gsl_strerror(err)
+            );
+            exit(-1);
+        }
+
+        x1.size--;
+        x2.size--;
+        x2.data++;
     }
-        
 }
 
 
 void consume(const sample_t *samples, int n_samples)
 {
-    float *buffer = calloc(n_samples, sizeof(float));
-    assert(buffer);
-    autocorrelate(samples, buffer, n_samples);
+    float *input = calloc(n_samples, sizeof(float)),
+         *output = calloc(n_samples, sizeof(float));
+    assert(input);
+    assert(output);
+    autocorrelate_l1(samples, input, output, n_samples);
 
 #if METER
     meter(samples, n_samples);
 #endif
 #if DUMP_ONE
-    dump_one(samples, buffer, n_samples);
+    dump_one(samples, output, n_samples);
 #endif
 
     free(buffer);
