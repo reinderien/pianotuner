@@ -17,5 +17,5 @@ fsamp = 44.1 kHz  tsamp = 22.676 us
 samples_min = fsamp / fmin = 1604
 */
 
-void consume(const sample_t *samples, int n_samples);
+void consume(const sample_t *samples, int n_samples, int rate);
 

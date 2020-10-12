@@ -15,7 +15,8 @@ void capture_period(
     CaptureContext *ctx,
     void (*consume)(
         const sample_t *samples,
-        int n_samples
+        int n_samples,
+        int rate
     )
 );
 

@@ -44,7 +44,7 @@ static void meter(
 static void dump_one(
     const sample_t *restrict samples, 
     const float *restrict output,
-    int N
+    int N, int rate
 )
 {
     FILE *f = fopen("dump.csv", "w");
@@ -56,7 +56,7 @@ static void dump_one(
     {
         fprintf(f, "%d,%d,", i, samples[i]);
         if (i)
-            fprintf(f, "%f", 44100./i);
+            fprintf(f, "%f", rate/(float)i);
         fprintf(f, ",%f\n", output[i]);
     }
     
@@ -84,7 +84,7 @@ static void autocorrelate(
 }
 
 
-void consume(const sample_t *samples, int n_samples)
+void consume(const sample_t *samples, int n_samples, int rate)
 {
     float *input = calloc(n_samples, sizeof(float)),
          *output = calloc(n_samples, sizeof(float));
@@ -108,7 +108,7 @@ void consume(const sample_t *samples, int n_samples)
 #endif
 
 #if DUMP_ONE
-    dump_one(samples, output, n_samples);
+    dump_one(samples, output, n_samples, rate);
 #endif
 
     free(input);

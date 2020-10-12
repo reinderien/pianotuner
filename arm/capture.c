@@ -758,7 +758,8 @@ void capture_period(
     CaptureContext *ctx,
     void (*consume)(
         const sample_t *samples,
-        int n_samples
+        int n_samples,
+        int rate
     )
 ) {
     snd_pcm_sframes_t avail;
@@ -790,7 +791,7 @@ void capture_period(
             + (areas->first / 8)
         ) + offset;
 
-        consume(samples, ctx->period);
+        consume(samples, ctx->period, ctx->rate);
     }
     else
     {
