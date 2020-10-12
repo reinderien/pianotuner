@@ -1,18 +1,17 @@
 #!/usr/bin/make -f
 
 # Requirements:
-# libasound2-dev libatlas-base-dev libgsl-dev
-# Also recommended: libasound2-dbgsym libgsl-dbg
+# libasound2-dev libatlas-base-dev
+# Also recommended: libasound2-dbgsym
 
 export
 
 objs = main.o capture.o freq.o
 
-pkg = pkg-config --cflags alsa blas-atlas gsl
+pkg = pkg-config --cflags alsa blas-atlas 
 
 cflags = $(shell ${pkg} --cflags) $\
-         -D_GNU_SOURCE -DGSL_DISABLE_DEPRECATED $\
-         -Wall -std=c18
+         -D_GNU_SOURCE -Wall -std=c18
 ifdef DEBUG
 	cflags += -ggdb
 else
