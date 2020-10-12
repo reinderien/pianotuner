@@ -12,9 +12,6 @@
 
 #define EXCRUCIATING_DETAIL 0
 
-#define SUBDEV_NO 0
-#define NAME_SIZE 16
-
 #define AGC false
 
 // Has no effect?
@@ -23,15 +20,8 @@
 
 struct CaptureContextTag
 {
-    int card_no, dev_no;
-    char card_name[NAME_SIZE];
-
     snd_output_t *output;
-    snd_ctl_t *ctl;
-    snd_ctl_card_info_t *card_info;
-	snd_pcm_info_t *pcm_info;
 	snd_pcm_t *pcm;
-	snd_pcm_hw_params_t *hwparams;
 	
     unsigned rate, period, timeout_ms, timeout_us;
     bool restart;
@@ -121,105 +111,53 @@ static const char *snd_ctl_power_state_name(unsigned state)
 }
 
 
-static void enumerate(CaptureContext *restrict ctx)
+static void open_ctl(
+    CaptureContext *restrict ctx, 
+    snd_ctl_t **restrict ctl,
+    snd_pcm_info_t *restrict pcm_info
+)
 {
-    puts("Enumerating devices...");
+    const int mode =
+          SND_PCM_NO_AUTO_RESAMPLE
+        | SND_PCM_NO_AUTO_CHANNELS
+     // We need ALSA to convert from S16_LE to float for us 
+     // | SND_PCM_NO_AUTO_FORMAT
+        | SND_PCM_NO_SOFTVOL
+    ;
+    check_snd(snd_pcm_open(
+        &ctx->pcm,
+        "default",
+        SND_PCM_STREAM_CAPTURE,
+        mode
+    ));
+    
+	check_snd(snd_pcm_info(ctx->pcm, pcm_info));
 
-    ctx->pcm_info = malloc(snd_pcm_info_sizeof());
-    ctx->card_info = malloc(snd_ctl_card_info_sizeof());
-    assert(ctx->pcm_info);
-    assert(ctx->card_info);
-
-    // Iterate through all cards
-    for (ctx->card_no = -1;;)
-    {
-        check_snd(snd_card_next(&ctx->card_no));
-        if (ctx->card_no < 0)
-            break;
-
-        assert(snprintf(
-            ctx->card_name,
-            NAME_SIZE,
-            "hw:%d",
-            ctx->card_no
-        ) > 0);
-        check_snd(snd_ctl_open(
-            &ctx->ctl,
-            ctx->card_name,
-            SND_CTL_READONLY
-        ));
-
-        // Iterate through PCM devices on this card
-        for (ctx->dev_no = -1;;)
-        {
-            check_snd(snd_ctl_pcm_next_device(ctx->ctl, &ctx->dev_no));
-            if (ctx->dev_no < 0)
-                break;
-
-            printf("hw:%d,%d", ctx->card_no, ctx->dev_no);
-
-			// Do not iterate through subdevices; just use the first
-			snd_pcm_info_set_device(ctx->pcm_info, ctx->dev_no);
-			snd_pcm_info_set_subdevice(ctx->pcm_info, SUBDEV_NO);
-			snd_pcm_info_set_stream(ctx->pcm_info, SND_PCM_STREAM_CAPTURE);
-			
-			int err = snd_ctl_pcm_info(ctx->ctl, ctx->pcm_info);
-            switch (err)
-            {
-                case 0:
-                    // Use the first device that is capture-capable
-                    printf(",%d: use\n", SUBDEV_NO);
-                    return;
-                case -ENOENT:
-                    // This PCM doesn't have capture
-                    puts(",*: skip");
-                    break;
-                default:
-                    // Different failure - treat it as fatal
-                    check_snd(err);
-            }
-        }
-
-        check_snd(snd_ctl_close(ctx->ctl));
-    }
-
-    fputs("There are no capture devices\n", stderr);
-    exit(-1);
+    char name[16];
+    assert(snprintf(
+        name, 16,
+        "hw:%d",
+        snd_pcm_info_get_card(pcm_info)
+    ));
+    check_snd(snd_ctl_open(
+        ctl,
+        name,
+        SND_CTL_READONLY
+    ));
 }
 
 
 static void init_pcm(CaptureContext *restrict ctx)
 {
-    assert(snprintf(
-        ctx->card_name,
-        NAME_SIZE,
-        "hw:%d,%d,%d",
-        ctx->card_no,
-        ctx->dev_no,
-        SUBDEV_NO
-    ) > 0);
+	snd_pcm_hw_params_t *hwparams;
+    snd_pcm_hw_params_alloca(&hwparams);
+    assert(hwparams);
 
-    const int mode =
-          SND_PCM_NO_AUTO_RESAMPLE
-        | SND_PCM_NO_AUTO_CHANNELS
-        | SND_PCM_NO_AUTO_FORMAT
-        | SND_PCM_NO_SOFTVOL
-    ;
-    check_snd(snd_pcm_open(
-        &ctx->pcm,
-        ctx->card_name,
-        SND_PCM_STREAM_CAPTURE,
-        mode
-    ));
-
-    ctx->hwparams = malloc(snd_pcm_hw_params_sizeof());
-    assert(ctx->hwparams);
-
-    check_snd(snd_pcm_hw_params_any(ctx->pcm, ctx->hwparams));
+    check_snd(snd_pcm_hw_params_any(ctx->pcm, hwparams));
 
     check_snd(snd_pcm_hw_params_set_access(
         ctx->pcm,
-        ctx->hwparams,
+        hwparams,
         // Interleaved has no effect since we have only one channel,
         // but it's the default - so fine
         SND_PCM_ACCESS_MMAP_INTERLEAVED
@@ -227,35 +165,28 @@ static void init_pcm(CaptureContext *restrict ctx)
 
     check_snd(snd_pcm_hw_params_set_format(
         ctx->pcm,
-        ctx->hwparams,
-        // This is the only one supported by the hardware anyway
-        SND_PCM_FORMAT_S16_LE
+        hwparams,
+        // We cannot use S16_LE, the only format supported by the
+        // hardware, since BLAS requires floating-point - so convert
+        // to float
+        SND_PCM_FORMAT_FLOAT_LE
+        // SND_PCM_FORMAT_S16_LE
     ));
 
-    check_snd(snd_pcm_hw_params_set_channels(
-        ctx->pcm,
-        ctx->hwparams,
-        1
-    ));
+    check_snd(snd_pcm_hw_params_set_channels(ctx->pcm, hwparams, 1));
 
     check_snd(snd_pcm_hw_params_set_rate_resample(
-        ctx->pcm, ctx->hwparams, false
+        ctx->pcm, hwparams, false
     ));
 
     // Set minimum rate based on Nyquist frequency of max note
     int direction = 0;
     ctx->rate = 2*FMIN;
     check_snd(snd_pcm_hw_params_set_rate_min(
-        ctx->pcm,
-        ctx->hwparams,
-        &ctx->rate,
-        &direction
+        ctx->pcm, hwparams, &ctx->rate, &direction
     ));
     check_snd(snd_pcm_hw_params_set_rate_first(
-        ctx->pcm,
-        ctx->hwparams,
-        &ctx->rate,
-        &direction
+        ctx->pcm, hwparams, &ctx->rate, &direction
     ));
     if (direction != 0)
     {
@@ -272,41 +203,42 @@ static void init_pcm(CaptureContext *restrict ctx)
     for (ctx->period = 1; ctx->period < min_period; ctx->period <<= 1);
     direction = 0;
     check_snd(snd_pcm_hw_params_set_period_size(
-        ctx->pcm,
-        ctx->hwparams,
-        ctx->period,
-        direction
+        ctx->pcm, hwparams, ctx->period, direction
     ));
 
     check_snd(snd_pcm_hw_params_set_buffer_size(
-        ctx->pcm,
-        ctx->hwparams,
-        2*ctx->period
+        ctx->pcm, hwparams, 2*ctx->period
     ));
 
     // Time out after 25% overrun
     ctx->timeout_us = (unsigned)(ctx->period * 1.25 / ctx->rate * 1e6),
     ctx->timeout_ms = ctx->timeout_us / 1000;
 
-    check_snd(snd_pcm_hw_params(ctx->pcm, ctx->hwparams));
+    check_snd(snd_pcm_hw_params(ctx->pcm, hwparams));
 }
 
 
-static void describe(const CaptureContext *restrict ctx)
+static void describe(
+    const CaptureContext *restrict ctx,
+    snd_ctl_t *restrict ctl,
+    const snd_pcm_info_t *restrict pcm_info
+)
 {
-    check_snd(snd_ctl_card_info(ctx->ctl, ctx->card_info));
+    snd_ctl_card_info_t *card_info;
+    snd_ctl_card_info_alloca(&card_info);
+    assert(card_info);
+    check_snd(snd_ctl_card_info(ctl, card_info));
 
     unsigned pow_state;
-    check_snd(snd_ctl_get_power_state(ctx->ctl, &pow_state));
+    check_snd(snd_ctl_get_power_state(ctl, &pow_state));
     printf(
-        "\n"
         "Control ------------------------------------------------------------\n"
         "  name        : %s\n"
         "  type        : %s\n"
         "  power state : %s\n"
         "\n",
-        snd_ctl_name(ctx->ctl),
-        snd_ctl_type_name(snd_ctl_type(ctx->ctl)),
+        snd_ctl_name(ctl),
+        snd_ctl_type_name(snd_ctl_type(ctl)),
         snd_ctl_power_state_name(pow_state)
     );
 
@@ -319,12 +251,12 @@ static void describe(const CaptureContext *restrict ctx)
         "  long name  : %s\n"
         "  mixer      : %s\n"
         "\n",
-        snd_ctl_card_info_get_id(ctx->card_info),
-        snd_ctl_card_info_get_components(ctx->card_info),
-        snd_ctl_card_info_get_driver(ctx->card_info),
-        snd_ctl_card_info_get_name(ctx->card_info),
-        snd_ctl_card_info_get_longname(ctx->card_info),
-        snd_ctl_card_info_get_mixername(ctx->card_info)
+        snd_ctl_card_info_get_id(card_info),
+        snd_ctl_card_info_get_components(card_info),
+        snd_ctl_card_info_get_driver(card_info),
+        snd_ctl_card_info_get_name(card_info),
+        snd_ctl_card_info_get_longname(card_info),
+        snd_ctl_card_info_get_mixername(card_info)
     );
 
     printf(
@@ -338,53 +270,38 @@ static void describe(const CaptureContext *restrict ctx)
         "  class       : %s\n"
         "  subclass    : %s\n"
         "\n",
-        snd_pcm_info_get_card(ctx->pcm_info),
-        snd_pcm_info_get_device(ctx->pcm_info),
-        snd_pcm_info_get_subdevice(ctx->pcm_info),
-        snd_pcm_info_get_subdevices_avail(ctx->pcm_info),
-        snd_pcm_info_get_subdevices_count(ctx->pcm_info),
-        snd_pcm_info_get_name(ctx->pcm_info),
-        snd_pcm_info_get_id(ctx->pcm_info),
-        snd_pcm_info_get_subdevice_name(ctx->pcm_info),
+        snd_pcm_info_get_card(pcm_info),
+        snd_pcm_info_get_device(pcm_info),
+        snd_pcm_info_get_subdevice(pcm_info),
+        snd_pcm_info_get_subdevices_avail(pcm_info),
+        snd_pcm_info_get_subdevices_count(pcm_info),
+        snd_pcm_info_get_name(pcm_info),
+        snd_pcm_info_get_id(pcm_info),
+        snd_pcm_info_get_subdevice_name(pcm_info),
         snd_pcm_class_name(
-            snd_pcm_info_get_class(ctx->pcm_info)
+            snd_pcm_info_get_class(pcm_info)
         ),
         snd_pcm_subclass_name(
-            snd_pcm_info_get_subclass(ctx->pcm_info)
+            snd_pcm_info_get_subclass(pcm_info)
         )
-    );
-
-    puts(
-        "Parameters ---------------------------------------------------------");
-    check_snd(snd_pcm_dump(ctx->pcm, ctx->output));
-
-    printf(
-        "\n"
-        "Constraints --------------------------------------------------------\n"
-        "  period : %u > %d\n"
-        "  rate   : %u > %d\n"
-        "  fmin   : %.1f < %.1f\n"
-        "  fmax   : %d > %d\n"
-        "\n",
-        ctx->period, (int)(ctx->rate / FMIN),
-        ctx->rate, (int)(2*FMAX),
-        ctx->rate / (float)ctx->period, FMIN,
-        ctx->rate/2, (int)FMAX
     );
 }
 
 
-static void describe_set_elems(const CaptureContext *restrict ctx)
+static void describe_set_elems(
+    const CaptureContext *restrict ctx,
+    snd_ctl_t *restrict ctl
+)
 {
     snd_ctl_elem_list_t *elements;
     snd_ctl_elem_list_alloca(&elements);
-    check_snd(snd_ctl_elem_list(ctx->ctl, elements));
+    check_snd(snd_ctl_elem_list(ctl, elements));
 
     int n_elements = snd_ctl_elem_list_get_count(elements);
     check_snd(snd_ctl_elem_list_alloc_space(elements, n_elements));
 
     // It's goofy that we have to call this a second time, but it's needed
-    check_snd(snd_ctl_elem_list(ctx->ctl, elements));
+    check_snd(snd_ctl_elem_list(ctl, elements));
     assert(n_elements == snd_ctl_elem_list_get_count(elements));
 
 	snd_ctl_elem_id_t *id;
@@ -409,7 +326,7 @@ static void describe_set_elems(const CaptureContext *restrict ctx)
     {
         snd_ctl_elem_list_get_id(elements, e, id);
         snd_ctl_elem_info_set_id(elem, id);
-	    check_snd(snd_ctl_elem_info(ctx->ctl, elem));
+	    check_snd(snd_ctl_elem_info(ctl, elem));
 
 	    snd_ctl_elem_type_t type = snd_ctl_elem_info_get_type(elem);
 
@@ -458,37 +375,37 @@ static void describe_set_elems(const CaptureContext *restrict ctx)
             "  name       : %s\n"
             "  type       : %s\n"
             "  numid      : %u\n"
-            #if EXCRUCIATING_DETAIL
-                "  count      : %u\n"
-                "  device     : %u\n"
-                "  subdevice  : %u\n"
-                "  dimension  : %d\n"
-                "  dimensions : %d\n"
-                "  index      : %u\n"
-            #endif
+        #if EXCRUCIATING_DETAIL
+            "  count      : %u\n"
+            "  device     : %u\n"
+            "  subdevice  : %u\n"
+            "  dimension  : %d\n"
+            "  dimensions : %d\n"
+            "  index      : %u\n"
+        #endif
             "  interface  : %s\n"
-            #if EXCRUCIATING_DETAIL
-                "  item name  : %s\n"
-                "  items      : %u\n"
-            #endif
+        #if EXCRUCIATING_DETAIL
+            "  item name  : %s\n"
+            "  items      : %u\n"
+        #endif
             "  min        : %s\n"
             "  max        : %s\n"
-            #if EXCRUCIATING_DETAIL
-                "  step       : %s\n"
-                "  owner      : %d\n"
-                "  inactive   : %d\n"
-                "  locked     : %d\n"
-                "  is owner        : %d\n"
-                "  is user         : %d\n"
-            #endif
+        #if EXCRUCIATING_DETAIL
+            "  step       : %s\n"
+            "  owner      : %d\n"
+            "  inactive   : %d\n"
+            "  locked     : %d\n"
+            "  is owner        : %d\n"
+            "  is user         : %d\n"
+        #endif
             "  is readable     : %d\n"
             "  is writable     : %d\n"
-            #if EXCRUCIATING_DETAIL
-                "  is volatile     : %d\n"
-                "  tlv commandable : %d\n"
-                "  tlv readable    : %d\n"
-                "  tlv writeable   : %d\n"
-            #endif
+        #if EXCRUCIATING_DETAIL
+            "  is volatile     : %d\n"
+            "  tlv commandable : %d\n"
+            "  tlv readable    : %d\n"
+            "  tlv writeable   : %d\n"
+        #endif
             ,
             name,
             snd_ctl_elem_type_name(
@@ -557,12 +474,12 @@ static void describe_set_elems(const CaptureContext *restrict ctx)
                 agc_set = true;
             }
 
-            check_snd(snd_ctl_elem_write(ctx->ctl, value));
+            check_snd(snd_ctl_elem_write(ctl, value));
         }
 
         if (readable)
         {
-            check_snd(snd_ctl_elem_read(ctx->ctl, value));
+            check_snd(snd_ctl_elem_read(ctl, value));
 
             char val_str[64];
 
@@ -596,10 +513,7 @@ static void describe_set_elems(const CaptureContext *restrict ctx)
                 break;
             }
 
-            printf(
-                "  value      : %s\n",
-                val_str
-            );
+            printf("  value      : %s\n", val_str);
         }
 
         putchar('\n');
@@ -607,6 +521,28 @@ static void describe_set_elems(const CaptureContext *restrict ctx)
 
     assert(vol_set);
     assert(agc_set);
+}
+
+
+static void describe_params(const CaptureContext *restrict ctx)
+{
+    puts(
+        "Parameters ---------------------------------------------------------");
+    check_snd(snd_pcm_dump(ctx->pcm, ctx->output));
+
+    printf(
+        "\n"
+        "Constraints --------------------------------------------------------\n"
+        "  period : %u > %d\n"
+        "  rate   : %u > %d\n"
+        "  fmin   : %.1f < %.1f\n"
+        "  fmax   : %d > %d\n"
+        "\n",
+        ctx->period, (int)(ctx->rate / FMIN),
+        ctx->rate, (int)(2*FMAX),
+        ctx->rate / (float)ctx->period, FMIN,
+        ctx->rate/2, (int)FMAX
+    );
 }
 
 
@@ -625,11 +561,18 @@ CaptureContext *capture_init(void)
         close
     ));
 
-    enumerate(ctx);
-    init_pcm(ctx);
-    describe(ctx);
-    describe_set_elems(ctx);
+    snd_pcm_info_t *pcm_info;
+    snd_pcm_info_alloca(&pcm_info);
+    assert(pcm_info);
 
+    snd_ctl_t *ctl;
+    open_ctl(ctx, &ctl, pcm_info);
+    describe(ctx, ctl, pcm_info);
+    describe_set_elems(ctx, ctl);
+    check_snd(snd_ctl_close(ctl));
+
+    init_pcm(ctx);
+    describe_params(ctx);
     check_snd(snd_pcm_start(ctx->pcm));
 
     return ctx;
@@ -639,12 +582,8 @@ CaptureContext *capture_init(void)
 void capture_deinit(CaptureContext *ctx)
 {
     warn_snd(snd_pcm_close(ctx->pcm));
-    warn_snd(snd_ctl_close(ctx->ctl));
     snd_config_update_free_global();
 
-    free(ctx->card_info);
-    free(ctx->pcm_info);
-    free(ctx->hwparams);
     free(ctx);
 
     puts("Capture deinitialized");
@@ -822,7 +761,7 @@ static snd_pcm_sframes_t capture_wait(CaptureContext *restrict ctx)
 void capture_period(
     CaptureContext *ctx,
     void (*consume)(
-        const int16_t *samples,
+        const sample_t *samples,
         int n_samples
     )
 ) {
@@ -832,29 +771,25 @@ void capture_period(
     while (avail == 0);
 
     const snd_pcm_channel_area_t *areas;
-    snd_pcm_uframes_t offset,
-        frames = ctx->period;
-    int err = (snd_pcm_mmap_begin(
-        ctx->pcm,
-        &areas,
-        &offset,
-        &frames
-    ));
+    snd_pcm_uframes_t offset, frames = ctx->period;
+    int err = (snd_pcm_mmap_begin(ctx->pcm, &areas, &offset, &frames));
     if (err < 0)
     {
         warn_snd(err);
         return;
     }
 
-    assert(areas->first % 8 == 0);  // Assume start offset bit-alignment
-    assert(areas->step == 16);      // Assume fully-contiguous samples
+    // Assume start offset bit-alignment
+    assert(areas->first % 8 == 0);  
+    // Assume fully-contiguous samples
+    assert(areas->step == 8*sizeof(sample_t));
 
     snd_pcm_uframes_t used;
     if (frames >= ctx->period)
     {
         used = ctx->period;
 
-        const int16_t *samples = (int16_t*)(
+        const sample_t *samples = (sample_t*)(
             (uint8_t*)areas->addr
             + (areas->first / 8)
         ) + offset;
@@ -873,9 +808,7 @@ void capture_period(
     }
 
     snd_pcm_sframes_t transferred = snd_pcm_mmap_commit(
-        ctx->pcm,
-        offset,
-        used
+        ctx->pcm, offset, used
     );
     warn_snd(transferred);
 }
