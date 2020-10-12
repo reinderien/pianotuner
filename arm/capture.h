@@ -5,7 +5,7 @@ struct CaptureContextTag;
 typedef struct CaptureContextTag CaptureContext;
 
 
-typedef float sample_t;
+typedef int16_t sample_t;
 
 
 CaptureContext *capture_init(void);

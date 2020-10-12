@@ -120,8 +120,7 @@ static void open_ctl(
     const int mode =
           SND_PCM_NO_AUTO_RESAMPLE
         | SND_PCM_NO_AUTO_CHANNELS
-     // We need ALSA to convert from S16_LE to float for us 
-     // | SND_PCM_NO_AUTO_FORMAT
+        | SND_PCM_NO_AUTO_FORMAT
         | SND_PCM_NO_SOFTVOL
     ;
     check_snd(snd_pcm_open(
@@ -136,13 +135,11 @@ static void open_ctl(
     char name[16];
     assert(snprintf(
         name, 16,
-        "hw:%d",
+        "hw:%u",
         snd_pcm_info_get_card(pcm_info)
     ));
     check_snd(snd_ctl_open(
-        ctl,
-        name,
-        SND_CTL_READONLY
+        ctl, name, SND_CTL_READONLY
     ));
 }
 
@@ -166,11 +163,10 @@ static void init_pcm(CaptureContext *restrict ctx)
     check_snd(snd_pcm_hw_params_set_format(
         ctx->pcm,
         hwparams,
-        // We cannot use S16_LE, the only format supported by the
-        // hardware, since BLAS requires floating-point - so convert
-        // to float
-        SND_PCM_FORMAT_FLOAT_LE
-        // SND_PCM_FORMAT_S16_LE
+        // We use S16_LE, the only format supported by the hardware.
+        // BLAS requires floating-point, so SND_PCM_FORMAT_FLOAT_LE
+        // would be nice, but it reads all-zero, so just do it ourselves.
+        SND_PCM_FORMAT_S16_LE
     ));
 
     check_snd(snd_pcm_hw_params_set_channels(ctx->pcm, hwparams, 1));
