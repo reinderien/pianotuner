@@ -200,8 +200,8 @@ static bool autocorrelate(
     {
     #if METER
         printf(
-            "                                          "
-            "                                          ");
+            "                                           "
+            "                                           ");
     #endif
         return false;
     }
