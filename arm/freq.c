@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_block.h>
@@ -16,7 +17,11 @@
 #define DUMP_ONE 1
 
 
-static void meter(const sample_t *restrict samples, int n_samples)
+static void meter(
+    const sample_t *restrict samples, 
+    int n_samples,
+    double calc_time
+)
 {
     sample_t max = 0;
     int sum = 0, asum = 0;
@@ -30,10 +35,11 @@ static void meter(const sample_t *restrict samples, int n_samples)
     }
 
     printf(
-        "max=%-6d ave=%-6.1f pow=%-6.1f\r",
+        "max=%-6d ave=%-6.1f pow=%-6.1f t=%.3e\r",
         max,
         sum / (float)n_samples,
-        asum / (float)n_samples
+        asum / (float)n_samples,
+        calc_time
     );
     fflush(stdout);
 }
@@ -56,15 +62,11 @@ static void dump_one(
 
 
 static void autocorrelate_l1(
-    const sample_t *restrict samples, 
     float *restrict input,
     float *restrict output,
     int N
 )
 {
-    for (int i = 0; i < N; i++)
-        input[i] = (float)samples[i];
-
     gsl_block_float input_block = {
         .data = input,
         .size = N
@@ -98,19 +100,31 @@ static void autocorrelate_l1(
 
 void consume(const sample_t *samples, int n_samples)
 {
+#if METER
+    struct timespec t1, t2;
+    assert(!clock_gettime(CLOCK_MONOTONIC_RAW, &t1));
+#endif
+    
     float *input = calloc(n_samples, sizeof(float)),
          *output = calloc(n_samples, sizeof(float));
     assert(input);
     assert(output);
-    autocorrelate_l1(samples, input, output, n_samples);
-
+    
+    for (int i = 0; i < n_samples; i++)
+        input[i] = (float)samples[i];
+        
+    autocorrelate_l1(input, output, n_samples);
+    
 #if METER
-    meter(samples, n_samples);
+    assert(!clock_gettime(CLOCK_MONOTONIC_RAW, &t2));
+    meter(samples, n_samples,
+          t2.tv_sec - t1.tv_sec + 1e-9*(t2.tv_nsec - t1.tv_nsec));
 #endif
 #if DUMP_ONE
     dump_one(samples, output, n_samples);
 #endif
 
-    free(buffer);
+    free(input);
+    free(output);
 }
 
