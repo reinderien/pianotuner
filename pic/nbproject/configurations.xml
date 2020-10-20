@@ -18,6 +18,7 @@
                    displayName="Important Files"
                    projectFiles="false">
       <itemPath>Makefile</itemPath>
+      <itemPath>C:/Program Files/Microchip/xc8/v2.20/pic/include/proc/pic16f1773.inc</itemPath>
     </logicalFolder>
   </logicalFolder>
   <projectmakefile>Makefile</projectmakefile>
@@ -25,7 +26,7 @@
     <conf name="default" type="2">
       <toolsSet>
         <developmentServer>localhost</developmentServer>
-        <targetDevice>PIC16LF1773</targetDevice>
+        <targetDevice>PIC16F1773</targetDevice>
         <targetHeader></targetHeader>
         <targetPluginBoard></targetPluginBoard>
         <platformTool>PICkit3PlatformTool</platformTool>
@@ -99,10 +100,10 @@
         <property key="programoptions.preserveuserid" value="false"/>
         <property key="programoptions.programcalmem" value="false"/>
         <property key="programoptions.programuserotp" value="false"/>
-        <property key="programoptions.testmodeentrymethod" value="VDDFirst"/>
+        <property key="programoptions.testmodeentrymethod" value="VPPFirst"/>
         <property key="programoptions.usehighvoltageonmclr" value="false"/>
-        <property key="programoptions.uselvpprogramming" value="false"/>
-        <property key="voltagevalue" value="3.25"/>
+        <property key="programoptions.uselvpprogramming" value="true"/>
+        <property key="voltagevalue" value="5.0"/>
       </PICkit3PlatformTool>
       <pic-as-assembler>
         <property key="fmax-errors" value="20"/>
@@ -113,7 +114,7 @@
         <property key="list-include-directories" value=""/>
         <property key="suppress-warnings" value="false"/>
         <property key="verbose" value="false"/>
-        <property key="warning-level" value="0"/>
+        <property key="warning-level" value="9"/>
         <property key="xassembler-with-cpp" value="true"/>
       </pic-as-assembler>
       <pic-as-global>
@@ -121,7 +122,7 @@
         <property key="instruction-set" value="std"/>
         <property key="summary-class" value="false"/>
         <property key="summary-file" value="false"/>
-        <property key="summary-hex" value="false"/>
+        <property key="summary-hex" value="true"/>
         <property key="summary-mem" value="true"/>
         <property key="summary-psect" value="false"/>
         <property key="summary-sha1" value="false"/>
@@ -132,7 +133,8 @@
       <pic-as-linker>
         <property key="linker-callgraph" value="std"/>
         <property key="linker-checksum" value=""/>
-        <property key="linker-custom-options" value=""/>
+        <property key="linker-custom-options"
+                  value="-aNEARCODE=000h-3FFh;-ppsect_por_vec=0;-ppsect_isr_vec=4"/>
         <property key="linker-fill" value=""/>
         <property key="linker-format-hex-file-for-download" value="false"/>
         <property key="linker-libraries" value=""/>

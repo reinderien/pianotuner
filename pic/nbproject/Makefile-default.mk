@@ -90,26 +90,26 @@ ifneq ($(INFORMATION_MESSAGE), )
 endif
 	${MAKE}  -f nbproject/Makefile-default.mk dist/${CND_CONF}/${IMAGE_TYPE}/pic.${IMAGE_TYPE}.${OUTPUT_SUFFIX}
 
-MP_PROCESSOR_OPTION=PIC16LF1773
+MP_PROCESSOR_OPTION=PIC16F1773
 # ------------------------------------------------------------------------------------
 # Rules for buildStep: pic-as-assembler
 ifeq ($(TYPE_IMAGE), DEBUG_RUN)
 ${OBJECTDIR}/main.o: main.asm  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/main.o 
-	${MP_AS} -mcpu=PIC16LF1773 -c \
+	${MP_AS} -mcpu=PIC16F1773 -c \
 	-o ${OBJECTDIR}/main.o \
 	main.asm \
-	 -msummary=+mem,-psect,-class,-hex,-file,-sha1,-sha256,-xml,-xmlfull -fmax-errors=20 -mwarn=0 -xassembler-with-cpp
+	 -msummary=+mem,-psect,-class,+hex,-file,-sha1,-sha256,-xml,-xmlfull -fmax-errors=20 -mwarn=9 -xassembler-with-cpp
 	
 else
 ${OBJECTDIR}/main.o: main.asm  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/main.o 
-	${MP_AS} -mcpu=PIC16LF1773 -c \
+	${MP_AS} -mcpu=PIC16F1773 -c \
 	-o ${OBJECTDIR}/main.o \
 	main.asm \
-	 -msummary=+mem,-psect,-class,-hex,-file,-sha1,-sha256,-xml,-xmlfull -fmax-errors=20 -mwarn=0 -xassembler-with-cpp
+	 -msummary=+mem,-psect,-class,+hex,-file,-sha1,-sha256,-xml,-xmlfull -fmax-errors=20 -mwarn=9 -xassembler-with-cpp
 	
 endif
 
@@ -118,15 +118,15 @@ endif
 ifeq ($(TYPE_IMAGE), DEBUG_RUN)
 dist/${CND_CONF}/${IMAGE_TYPE}/pic.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTFILES}  nbproject/Makefile-${CND_CONF}.mk    
 	@${MKDIR} dist/${CND_CONF}/${IMAGE_TYPE} 
-	${MP_LD} -mcpu=PIC16LF1773 ${OBJECTFILES_QUOTED_IF_SPACED} \
+	${MP_LD} -mcpu=PIC16F1773 ${OBJECTFILES_QUOTED_IF_SPACED} \
 	-o dist/${CND_CONF}/${IMAGE_TYPE}/pic.${IMAGE_TYPE}.${OUTPUT_SUFFIX} \
-	 -msummary=+mem,-psect,-class,-hex,-file,-sha1,-sha256,-xml,-xmlfull -mcallgraph=std -mno-download-hex
+	 -msummary=+mem,-psect,-class,+hex,-file,-sha1,-sha256,-xml,-xmlfull -Wl,-aNEARCODE=000h-3FFh,-ppsect_por_vec=0,-ppsect_isr_vec=4 -mcallgraph=std -mno-download-hex
 else
 dist/${CND_CONF}/${IMAGE_TYPE}/pic.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTFILES}  nbproject/Makefile-${CND_CONF}.mk   
 	@${MKDIR} dist/${CND_CONF}/${IMAGE_TYPE} 
-	${MP_LD} -mcpu=PIC16LF1773 ${OBJECTFILES_QUOTED_IF_SPACED} \
+	${MP_LD} -mcpu=PIC16F1773 ${OBJECTFILES_QUOTED_IF_SPACED} \
 	-o dist/${CND_CONF}/${IMAGE_TYPE}/pic.${IMAGE_TYPE}.${OUTPUT_SUFFIX} \
-	 -msummary=+mem,-psect,-class,-hex,-file,-sha1,-sha256,-xml,-xmlfull -mcallgraph=std -mno-download-hex
+	 -msummary=+mem,-psect,-class,+hex,-file,-sha1,-sha256,-xml,-xmlfull -Wl,-aNEARCODE=000h-3FFh,-ppsect_por_vec=0,-ppsect_isr_vec=4 -mcallgraph=std -mno-download-hex
 endif
 
 
