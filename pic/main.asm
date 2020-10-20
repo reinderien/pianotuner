@@ -3,14 +3,14 @@
 ; CONFIG1
     config FOSC=INTOSC  ; RA7 has I/O. High-freq intern osc (HFINTOSC) used.
     
-    #if IsDebug==true
+#if IsDebug==true
     #warning Programming for debug mode
     config WDTE=OFF     ; Mandatory for debug: watchdog disabled
     config PWRTE=OFF    ; Power-up timer disabled
-    #else
+#else
     config WDTE=ON      ; Watchdog timer enabled even in sleep
     config PWRTE=ON     ; Power-up timer enabled
-    #endif
+#endif
     
     config MCLRE=ON     ; Memory clear enabled, weak pull-up enabled
     config CP=OFF       ; Code protection off
@@ -36,12 +36,12 @@ code_psect macro name
 endm
 
 code_psect por_vec
-    goto main
+    goto init
  
 code_psect isr_vec
     retfie
     
-code_psect main
+code_psect init
     ; Leave WDT at default 2s
     
     ; Oscillator config
@@ -56,5 +56,7 @@ code_psect main
     ; HFINTOSC PLL should lock within 2% (HFIOFL); 
     ; and it should stabilise within 0.5% (HFIOFS).
     
+main:
     goto main
-    end main
+
+    end por_vec
