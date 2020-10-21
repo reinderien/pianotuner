@@ -127,11 +127,47 @@ init_dac:
     bsf DAC5EN
     
 init_opamp:
+    banksel OPA1CON
+    movlw 0b0010 ; DAC1
+    movwf OPA1PCHS
+    movlw 0b0011 ; DAC2
+    movwf OPA2PCHS
+    movlw 0b0010 ; DAC5
+    movwf OPA3PCHS
+    ; OPACON: enabled, unity gain, no overrides
+    movlw OPA1CON_OPA1EN_MASK | OPA1CON_OPA1UG_MASK
+    movwf OPA1CON
+    movwf OPA2CON
+    movwf OPA3CON
     
-
+init_pps:
+    ; RC1: SDI (MOSI)
+    ; RC2: SDO (MISO)
+    ; RC3: SCK
+    banksel RC2PPS
+    movlw 0b100011  ; SDO
+    movwf RC2PPS
+    
+    banksel PPSLOCK
+    movlw 0b010001  ; RC1
+    movwf SSPDATPPS
+    movlw 0b010011  ; RC3
+    movwf SSPCLKPPS
+    ; SSPSSPPS ? 
+    
+    movlw 0x55
+    movwf PPSLOCK
+    movlw 0xAA
+    movwf PPSLOCK
+    bsf PPSLOCKED
+    
 init_spi:
     ; MSSP SPI child mode on all-PPS selected pins
     ; SCK, SDI (MOSI), SDO (MISO), SS?
+    
+    ; SPI Slave mode, clock = SCK pin, SS pin control disabled
+    movlw SSP1CON1_SSPEN_MASK | 0b0101
+    movwf SSP1CON1
     
 main:
     sleep
