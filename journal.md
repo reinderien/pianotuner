@@ -108,7 +108,7 @@ Some of it makes no sense to me so I post on a
 forum.
 
 Ordered some Microchip PIC16LF1773 (programmable interrupt controller) from 
-Mouser, since Microchip was nearly out of stock. These devices have a mix of 5- 
+Mouser, since DigiKey was nearly out of stock. These devices have a mix of 5- 
 and 10-bit unbuffered DACs that can be internally buffered with three op-amps; 
 they also support UART, I2C and SPI - so one way or the other they'll 
 definitely be able to talk with the Pi.
