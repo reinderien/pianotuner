@@ -67,6 +67,14 @@ Order some vintage-style electrical accessories from
 [Vintage Wire & Supply](https://vintagewireandsupply.com). They're relatively
 expensive but look incredible.
 
+![Raspberry Pi sitting outside of the box](https://raw.githubusercontent.com/reinderien/pianotuner/master/journal-pics/pi-with-box.jpg)
+
+Pictured above: temporary keyboard on the bottom; open box (so far unmodified) in the middle with the Raspberry Pi board sitting on top of it; USB microphone sticking out to the right. The ribbon cable is for a real-time clock that is also temporary. On the left you can see the twisted brown cotton vintage-style 120VAC cord.
+
+![Power components sitting in box](https://raw.githubusercontent.com/reinderien/pianotuner/master/journal-pics/supply-in-box.jpg)
+
+Pictured above: power components sitting in a temporary arrangement in the box. Far centre left is the brown 120VAC cord, running to a brass stress relief in the middle that will eventually be in the side of the box. Centre is a white marette to the switch. Lower left is the antique switch that will be mounted to the exterior of the box. Lower right is the MeanWell power supply; more rugged and well-ventilated than the typical cell phone charger. The red-yellow cord runs 5V from the power supply to a small green terminal block, in turn through a USB-C cable to the Raspberry Pi on the upper left.
+
 ### Oct 2, 2020
 
 Going on vacation. The wife has let me bring a pile of tech goodies to work on 
@@ -122,6 +130,14 @@ little devices, fully disassemble-able with two screws on the side, and come
 pre-packaged with hardware for the mounting bolts. There's a high-accuracy
 resistor in each, and the input impedance is a little over 5k, so the PIC can
 definitely handle it.
+
+![Gauge sitting on a breadboard](https://raw.githubusercontent.com/reinderien/pianotuner/master/journal-pics/gauge-on-board.jpg)
+
+Upper left: chassis of the power supply; with the red PICkit 3 programmer in front of it, plugged into the breadboard.
+
+The breadboard has the intended DAC PIC just below the PICkit.
+
+On the gauge itself: the sticker on the top will be discarded; the front plastic pane and surrounding cylindrical cover come off with two screws on the side (not shown); then the instrument plate comes off with two bolts on the front.
 
 ### Oct 19, 2020
 
