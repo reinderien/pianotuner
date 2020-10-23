@@ -26,7 +26,7 @@
     config BORV=HI      ; Brown-out threshold is 2.7V typ
     config LPBOR=ON     ; Low-power brown-out reset enabled
     ; leave DEBUG up to the programmer
-    config LVP=ON       ; Low-voltage programming disabled
+    config LVP=OFF      ; Low-voltage programming disabled
     
 code_psect macro name
     psect psect_&name, class=NEARCODE, space=SPACE_CODE, delta=2
