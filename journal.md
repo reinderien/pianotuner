@@ -146,3 +146,13 @@ realize I had been using a deprecated 32-bit Raspbian.
 
 Also need to write a calibration routine that gives me interquartile range for
 the harmonics at various notes.
+
+### Oct 23, 2020
+
+Consider using a nice amber LED for backlights; such as the Lite-On LTL-1CHA with
+- 3mm diffusion lens
+- 20mA max, 2.1 volts forward
+- 60° half-power angle
+- Wavelengths: 602 nanometres dominant, 610 nanometres peak
+
+If we use 10mA, we need 270R limiting each LED. For fade-in with a capacitor parallel to the LED, and a time constant over 2 seconds, we need a large capacitor of ~10mF.
