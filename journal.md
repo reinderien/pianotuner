@@ -133,11 +133,15 @@ definitely handle it.
 
 ![Gauge sitting on a breadboard](https://raw.githubusercontent.com/reinderien/pianotuner/master/journal-pics/gauge-on-board.jpg)
 
-Upper left: chassis of the power supply; with the red PICkit 3 programmer in front of it, plugged into the breadboard.
+Upper left: chassis of the power supply; with the red PICkit 3 programmer in 
+front of it, plugged into the breadboard.
 
 The breadboard has the intended DAC PIC just below the PICkit.
 
-On the gauge itself: the sticker on the top will be discarded; the front plastic pane and surrounding cylindrical cover come off with two screws on the side (not shown); then the instrument plate comes off with two bolts on the front.
+On the gauge itself: the sticker on the top will be discarded; the front 
+plastic pane and surrounding cylindrical cover come off with two screws on the 
+side (not shown); then the instrument plate comes off with two bolts on the 
+front.
 
 ### Oct 19, 2020
 
@@ -171,4 +175,84 @@ Consider using a nice amber LED for backlights; such as the Lite-On LTL-1CHA wit
 - 60° half-power angle
 - Wavelengths: 602 nanometres dominant, 610 nanometres peak
 
-If we use 10mA, we need 270R limiting each LED. For fade-in with a capacitor parallel to the LED, and a time constant over 2 seconds, we need a large capacitor of ~10mF.
+If we use 10mA, we need 270R limiting each LED. For fade-in with a capacitor 
+parallel to the LED, and a time constant over 2 seconds, we need a large 
+capacitor of ~10mF.
+
+### Oct 24, 2020
+
+The capacitive fade-in option kind of sucks. The capacitors needed are big and 
+expensive, and all four could be replaced with a single 40mA MOSFET driven by
+PWM from the PIC. Another advantage of PWM would be that it works right away,
+where as capacitive charge has to go through a dead zone where the forward 
+voltage is below that needed by the LED.
+
+The PIC16F1773 supports 10/16-bit hardware PWM with a bunch of different 
+sources. PWMs 3, 4, 5, 6, 9 and 11 all support PPS and at least one of them can
+output to each of PORTA/B/C, respectively. Compare/capture/PWM (CCP) modules
+1, 2, and 7 likewise can output to at least one of those ports.
+
+The hardware solution would have charged by
+
+    V(t) α 1 - exp(-t/𝜏)
+    
+with 90% by
+
+    t = -𝜏 ln(1 - 0.9)
+
+If we want 90% in two seconds, 𝜏 ~ 0.8686, and our time expression becomes
+
+    V(t) α 1 - 0.1^(t/2)
+
+A piecewise linear approximation would depend on the derivative:
+
+    dV/dt = 1/𝜏 exp(-t/𝜏)
+          = -ln0.1 / 2 * 0.1^(t/2)
+    
+If we increment 8 of the 16 bits in the duty cycle for a PWM,
+the configuration would be
+
+    EN = 1
+    MODE = 00 (standard)
+    PRIE = 1 (interrupt on period match to update duty)
+    PS set to divide between 2^0 and 2^7
+    CS either HFINTOSC (16MHz) or LFINTOSC (31kHz) - both sleep-compatible
+    OFM = 00 (independent run)
+
+We will be starting DC at 0, DC delta at a high value, and applying a simple
+binary exponential decay algorithm on the delta. To find the initial delta
+value we need to work backward: at the end of the curve, the delta will only
+be 1, representing 2^-8 of full deflection. The last intersection of the exact
+and approximate curves is at
+
+    -𝜏 ln(2^-8) ~ 4.817 s
+    
+At this time, the derivative is
+
+    1/𝜏 * 2^-8 ~ 0.004497
+
+The time it takes to increase 2^-8 is, with an initial tangent,
+
+    2^-8 𝜏 exp(t/𝜏)
+
+which starts as 3.4 ms. If we only did this for one cycle, we could still have
+a PWM rate of 295 Hz. Assuming a PR of 0x100, 
+
+    Period = (PWMxPR + 1) * prescale / clock
+    prescale = log(16e6 * 2^-8 𝜏 / (2^8 + 1)) / log(2) ~ 7.72 > 7
+
+The slowest prescale for 16-bit PWM is 2^7, which would mean a period value of
+
+    2^-8 𝜏 * 16e6 / 2^7 - 1 ~ 423 > 2^8
+
+which would require carry operations during PWM update. If we go the other way,
+disable the prescaler and use LFINTOSC=31kHz,
+
+    2^-8 𝜏 * 31e3 - 1 = 104
+
+`TMR2IE` probably won't work in 10-bit mode, because the timer is cleared on
+period match.
+
+It's also worth noting that the transfer function for duty cycle to lumens is 
+assumed to be linear but probably isn't.
+
