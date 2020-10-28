@@ -256,3 +256,37 @@ period match.
 It's also worth noting that the transfer function for duty cycle to lumens is 
 assumed to be linear but probably isn't.
 
+
+### Oct 25, 2020
+
+Some of the above will stay true and some won't. The problem with having a
+fixed delta update rate is that eventually, the delta would need to be
+fractional, and we're only using integer math.
+
+This is a very powerful device; we could pursue any of the following as
+alternatives:
+
+- Use 16-bit PWM, interrupt on `PRIF`, increment a soft post-scaler,
+  increment `PWMxDC` on post-scale overflow, double post-scale factor every
+  140 `PRIF`s
+- Use 10/16-bit PWM, short `PWMx` output to `TMR4_clk` input, increment 
+  `PWMxDCH` on every `TMR4IF`, short `PWMx` output to `TMR6_clk` input, double 
+  `PR4` on every `TMR6IF`
+- Use CLC with two internal PWM/CCP inputs, offset by a beat frequency
+- Use COG with two internal PCM/CCP inputs, offset by a beat frequency
+
+For the last one, we'd have:
+
+- `COG1CON0`
+    - `EN` = 1
+    - `CS` = 0b10 (HFINTOSC, sleep-compatible)
+    - `MD` = 0b000 (steered PWM)
+- `G1RIS9` = 1 (PWM5 for rising)
+- `G1FIS10` = 1 (PWM6 for falling)
+- `COG1STRA` = 1 (output on steering channel A)
+
+### Oct 27, 2020
+
+Continuing the silliness above, I've posted a 
+[detailed solution](https://electronics.stackexchange.com/a/529533/10008).
+
