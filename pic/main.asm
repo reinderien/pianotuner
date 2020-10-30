@@ -59,12 +59,12 @@ init_ports:
     ; RB1: ana out OPA2OUT (DAC2)
     ; RB6: dig in  ICSPCLK
     ; RB7: dig in  ICSPDAT
-    ; RE3: dig in  MCLR
     ; RC1: SDI (MOSI)
     ; RC2: SDO (MISO)
     ; RC3: SCK
     ; RC4: dig out COG1A
     ; RC6: ana out OPA3OUT (DAC5)
+    ; RE3: dig in  MCLR
     ; Unused pins dig out driven to 0.
     ; Leave slew rate limitation enabled.
     ; Leave WPUEN disabled.
@@ -122,7 +122,7 @@ init_pps:
     movwf PPSLOCK
     bsf PPSLOCKED
     
-init_cog:
+init_fade_cog:
     ; Complementary waveform generator setup to output linear duty cycle growth
     ; based on beat frequency between PWM5 and PWM6. Output goes to a FET driver
     ; on the low side of all backlight LEDs.
@@ -139,7 +139,7 @@ init_cog:
     
     bsf G1EN     ; Enable
     
-init_pwm:
+init_fade_pwm:
     ; Beat frequency is chosen between these two PWM modules to approximate an
     ; exponential decay up to 100%DC, with halving time ~ 0.6021s
     banksel PWM5CON
@@ -178,7 +178,14 @@ init_pwm:
     bsf PWM5EN
     bsf PWM6EN
 
-init_dac:
+init_fade_timer:
+    banksel T2CON
+    ; todo - fixed timer; don't bother with CLC
+    
+    bsf T2ON   ; Enable
+    
+
+init_gauge_dac:
     ; DAC*OUT1 available on pins; four DACs can be internally
     ; buffered through three op-amps:
     ; dac    1   4   2   3   5   7
@@ -207,7 +214,7 @@ init_dac:
     bsf DAC4EN
     bsf DAC5EN
     
-init_opamp:
+init_gauge_opamp:
     banksel OPA1CON
     movlw 0b0010 ; DAC1
     movwf OPA1PCHS
@@ -221,7 +228,7 @@ init_opamp:
     movwf OPA2CON
     movwf OPA3CON
     
-init_spi:
+init_rpi_spi:
     ; MSSP SPI child mode on all-PPS selected pins
     ; SCK, SDI (MOSI), SDO (MISO), SS?
     
