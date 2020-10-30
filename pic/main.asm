@@ -63,6 +63,7 @@ init_ports:
     ; RC1: SDI (MOSI)
     ; RC2: SDO (MISO)
     ; RC3: SCK
+    ; RC4: dig out COG1A
     ; RC6: ana out OPA3OUT (DAC5)
     ; Unused pins dig out driven to 0.
     ; Leave slew rate limitation enabled.
@@ -75,6 +76,12 @@ init_ports:
     movwf TRISB
     movlw 0b01001010
     movwf TRISC
+    
+    ; Zero output latches
+    banksel LATA
+    clrf LATA
+    clrf LATB
+    clrf LATC
     
     ; The only analogue pins are for DAC/OPA
     banksel ANSELA
@@ -91,12 +98,86 @@ init_ports:
     comf INLVLB
     comf INLVLC
     
-    ; Zero output latches
-    banksel LATA
-    clrf LATA
-    clrf LATB
-    clrf LATC
+init_pps:
+    ; RC1: SDI (MOSI)
+    ; RC2: SDO (MISO)
+    ; RC3: SCK
+    ; RC4: COG1A
+    banksel RC2PPS
+    movlw 0b100011  ; SDO
+    movwf RC2PPS
+    movlw 0b000101  ; COG1A
+    movwf RC4PPS
     
+    banksel PPSLOCK
+    movlw 0b010001  ; RC1
+    movwf SSPDATPPS
+    movlw 0b010011  ; RC3
+    movwf SSPCLKPPS
+    ; SSPSSPPS ? 
+    
+    movlw 0x55
+    movwf PPSLOCK
+    movlw 0xAA
+    movwf PPSLOCK
+    bsf PPSLOCKED
+    
+init_cog:
+    ; Complementary waveform generator setup to output linear duty cycle growth
+    ; based on beat frequency between PWM5 and PWM6. Output goes to a FET driver
+    ; on the low side of all backlight LEDs.
+    banksel COG1CON0
+    bsf G1RIS9   ; PWM5 for rise
+    bsf G1FIS10  ; PWM6 for fall
+    bsf G1STRA   ; Steering out on channel A
+    bsf G1ASDAC1 ; High out if shutdown
+    bsf G1CS1    ; Clocked by HFINTOSC
+    
+    ; Blanking is applicable: we only care about events after a minimum period
+    ; of 1/2/161.08Hz
+    ; todo
+    
+    bsf G1EN     ; Enable
+    
+init_pwm:
+    ; Beat frequency is chosen between these two PWM modules to approximate an
+    ; exponential decay up to 100%DC, with halving time ~ 0.6021s
+    banksel PWM5CON
+    
+    ; HFINTOSC/2^3 = 4 MHz
+    movlw (3 << PWM5CLKCON_PS_POSN) \
+     | (0b01 << PWM5CLKCON_CS_POSN)
+    movwf PWM5CLKCON
+    movwf PWM6CLKCON
+    
+    ; Period: rise 161.08Hz fixed, and fall offset by -0.826Hz initially
+    movlw 0x61
+    movwf PWM5PRH
+    movwf PWM6PRH
+    clrf PWM5PRL
+    movlw 0x80
+    movwf PWM6PRL
+    
+    ; 0 phase, 0 offset
+    clrf PWM5PHL
+    clrf PWM5PHH
+    clrf PWM5OFL
+    clrf PWM5OFH
+    clrf PWM6PHL
+    clrf PWM6PHH
+    clrf PWM6OFL
+    clrf PWM6OFH
+    
+    ; Minimal duty cycle for both
+    movlw 1
+    movwf PWM5DCL
+    movwf PWM6DCL
+    clrf PWM5DCH  
+    clrf PWM6DCH
+    
+    bsf PWM5EN
+    bsf PWM6EN
+
 init_dac:
     ; DAC*OUT1 available on pins; four DACs can be internally
     ; buffered through three op-amps:
@@ -139,27 +220,6 @@ init_opamp:
     movwf OPA1CON
     movwf OPA2CON
     movwf OPA3CON
-    
-init_pps:
-    ; RC1: SDI (MOSI)
-    ; RC2: SDO (MISO)
-    ; RC3: SCK
-    banksel RC2PPS
-    movlw 0b100011  ; SDO
-    movwf RC2PPS
-    
-    banksel PPSLOCK
-    movlw 0b010001  ; RC1
-    movwf SSPDATPPS
-    movlw 0b010011  ; RC3
-    movwf SSPCLKPPS
-    ; SSPSSPPS ? 
-    
-    movlw 0x55
-    movwf PPSLOCK
-    movlw 0xAA
-    movwf PPSLOCK
-    bsf PPSLOCKED
     
 init_spi:
     ; MSSP SPI child mode on all-PPS selected pins
