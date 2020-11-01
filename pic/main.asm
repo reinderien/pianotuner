@@ -175,8 +175,10 @@ init_fade_pwm:
     clrf PWM5DCH  
     clrf PWM6DCH
     
-    bsf PWM5EN
-    bsf PWM6EN
+    ; To enable 5 and 6 at the same time, use mirror registers
+    movlw PWMEN_MPWM5EN_MASK \
+        | PWMEN_MPWM6EN_MASK
+    movwf PWMEN
 
 init_fade_timer:
     banksel T2CON
