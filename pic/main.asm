@@ -140,22 +140,31 @@ init_fade_cog:
     bsf G1EN     ; Enable
     
 init_fade_pwm:
-    ; Beat frequency is chosen between these two PWM modules to approximate an
-    ; exponential decay up to 100%DC, with halving time ~ 0.6021s
+    ; Beat frequency is chosen between these two PWM modules for a linear DC
+    ; from 0 to 100%
     banksel PWM5CON
     
-    ; HFINTOSC/2^3 = 4 MHz
-    movlw (3 << PWM5CLKCON_PS_POSN) \
+    ; HFINTOSC/2**1 = 8 MHz
+    movlw (1 << PWM5CLKCON_PS_POSN) \
      | (0b01 << PWM5CLKCON_CS_POSN)
     movwf PWM5CLKCON
     movwf PWM6CLKCON
     
-    ; Period: rise 161.08Hz fixed, and fall offset by -0.826Hz initially
-    movlw 0x61
+    ; set period = (PWM5PR + 1)*PS / 16MHz
+    ; for 200Hz, PS=2, PR5 = 39,999 = 0x9C3F
+    
+    ; reset period = (PWM6PR + 1)*PS / 16MHz
+    ; 3s = tset**2/(treset - tset)
+    ; treset - tset = 8.333us
+    ; freset = 199.667 Hz
+    ; PS=2, PR6 = 40,066 = 0x9C82
+    
+    movlw 0x9C
     movwf PWM5PRH
     movwf PWM6PRH
-    clrf PWM5PRL
-    movlw 0x80
+    movlw 0x3F
+    movwf PWM5PRL
+    movlw 0x82
     movwf PWM6PRL
     
     ; 0 phase, 0 offset
@@ -169,11 +178,15 @@ init_fade_pwm:
     clrf PWM6OFH
     
     ; Minimal duty cycle for both
-    movlw 1
+    movlw 0xF0
     movwf PWM5DCL
     movwf PWM6DCL
     clrf PWM5DCH  
     clrf PWM6DCH
+    
+    ; Arm-load PWM registers
+    bsf PWM5LD
+    bsf PWM6LD
     
     ; To enable 5 and 6 at the same time, use mirror registers
     movlw PWMEN_MPWM5EN_MASK \
