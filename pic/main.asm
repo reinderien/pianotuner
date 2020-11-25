@@ -48,10 +48,32 @@ code_psect por_vec
     goto init
  
 code_psect isr_vec
+fade_disable:
+    banksel PIR1
+    btfss TMR2IF
+    retfie
+    
+    ; Per 27.6.1, regardless of EN, if shutdown is active, output will take the
+    ; "shutdown override" value from ASDAC - which we've set to 1
+    banksel COG1CON0
+    bsf G1ASE  ; Auto-shutdown enable
+    bcf G1EN   ; Disable the COG
+    banksel PWMEN
+    clrf PWMEN ; Disable PWM5, 6
+    banksel T2CON
+    bcf T2ON   ; Disable the timer (manual due to free-run mode) 
+    banksel PIE1
+    bcf TMR2IE ; Disable timer int
+    banksel PIR1
+    bcf TMR2IF ; Clear the timer int flag  
     retfie
     
 code_psect init
     ; Leave WDT at default 2s
+    ; OSCCON, PIEx and TRIS share bank 1 - set the latter two in sequence here
+    
+select_interrupts:
+    bsf TMR2IE
     
 init_ports:
     ; RA1: ana out OPA1OUT (DAC1)
@@ -69,7 +91,7 @@ init_ports:
     ; Leave slew rate limitation enabled.
     ; Leave WPUEN disabled.
     
-    ; Tristates (OSCCON and TRIS share a bank)
+    ; Tristates
     movlw 0b00010010
     movwf TRISA
     movlw 0b11000010
@@ -199,11 +221,20 @@ init_fade_pwm:
 
 init_fade_timer:
     banksel T2CON
-    ; todo - fixed timer; don't bother with CLC
     
-    bsf T2ON   ; Enable
+    ; We can't use one-shot mode because it doesn't respect the postscaler
+    ; LFINTOSC=31kHz
+    bsf T2CS2
+    ; For 8 bits, 31kHz, 5s, prescale=2**7, postscale=5: tmr ~ 242
+    movlw 242
+    movwf T2PR
     
-
+    ; On, prescale=2**7, postscale=5
+    movlw T2CON_ON_MASK \
+        | (7 << T2CON_CKPS_POSN) \
+	| ((5 - 1) << T2CON_OUTPS_POSN)
+    movwf T2CON
+    
 init_gauge_dac:
     ; DAC*OUT1 available on pins; four DACs can be internally
     ; buffered through three op-amps:
@@ -250,10 +281,15 @@ init_gauge_opamp:
 init_rpi_spi:
     ; MSSP SPI child mode on all-PPS selected pins
     ; SCK, SDI (MOSI), SDO (MISO), SS?
+    banksel SSP1CON1
     
     ; SPI Slave mode, clock = SCK pin, SS pin control disabled
     movlw SSP1CON1_SSPEN_MASK | 0b0101
     movwf SSP1CON1
+
+enable_interrupts:
+    bsf PEIE  ; Every interrupt we use is on a "peripheral"
+    bsf GIE
     
 main:
     sleep
