@@ -133,9 +133,9 @@ init_fade_cog:
     bsf G1ASDAC1 ; High out if shutdown
     bsf G1CS1    ; Clocked by HFINTOSC
     
-    ; Blanking is applicable: we only care about events after a minimum period
-    ; of 1/2/161.08Hz
-    ; todo
+    ; Blanking is possible: we only care about events after a minimum period
+    ; of 0.9/200Hz=4.5ms. At 16MHz and 6 bits, blanking time maxes out at
+    ; (2**6-1)/16MHz = 3.9us. Not even worth it.
     
     bsf G1EN     ; Enable
     
@@ -154,17 +154,17 @@ init_fade_pwm:
     ; for 200Hz, PS=2, PR5 = 39,999 = 0x9C3F
     
     ; reset period = (PWM6PR + 1)*PS / 16MHz
-    ; 3s = tset**2/(treset - tset)
-    ; treset - tset = 8.333us
-    ; freset = 199.667 Hz
-    ; PS=2, PR6 = 40,066 = 0x9C82
+    ; 5s = tset**2/(treset - tset)
+    ; treset - tset = 5us
+    ; freset ~ 199.8 Hz
+    ; PS=2, PR6 = 40,039 = 0x9C67
     
     movlw 0x9C
     movwf PWM5PRH
     movwf PWM6PRH
     movlw 0x3F
     movwf PWM5PRL
-    movlw 0x82
+    movlw 0x67
     movwf PWM6PRL
     
     ; 0 phase, 0 offset
@@ -178,11 +178,15 @@ init_fade_pwm:
     clrf PWM6OFH
     
     ; Minimal duty cycle for both
-    movlw 0xF0
+    movlw 1
     movwf PWM5DCL
     movwf PWM6DCL
     clrf PWM5DCH  
     clrf PWM6DCH
+    
+    ; Since the falling COG input block is active-low,
+    ; PWM6 needs to have its polarity inverted
+    bsf PWM6POL
     
     ; Arm-load PWM registers
     bsf PWM5LD
