@@ -290,3 +290,10 @@ For the last one, we'd have:
 Continuing the silliness above, I've posted a 
 [detailed solution](https://electronics.stackexchange.com/a/529533/10008).
 
+### Nov 24, 2020
+
+A month, more math and experimentation later, the LED fader is done. As it turns out, the luminosity transfer function seems to be visually exponential so I can get away with a linear ramp. 
+
+![bright LED](https://raw.githubusercontent.com/reinderien/pianotuner/master/journal-pics/led-fading.jpg)
+
+The very bright red LED used in this test will not be used in the final system but is working fine nevertheless. This one is so bright that it illuminates my ceiling at 20mA.
