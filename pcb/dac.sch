@@ -17734,10 +17734,10 @@ by R. Vogg  15.March.2002</description>
 <part name="GND6" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 <part name="JL" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-2X4" device="" package3d_urn="urn:adsk.eagle:package:22461/2"/>
 <part name="P+4" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="+5V" device=""/>
-<part name="R1" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-US_" device="0207/7" package3d_urn="urn:adsk.eagle:package:23493/2" value="270R"/>
-<part name="R2" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-US_" device="0207/7" package3d_urn="urn:adsk.eagle:package:23493/2" value="270R"/>
-<part name="R3" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-US_" device="0207/7" package3d_urn="urn:adsk.eagle:package:23493/2" value="270R"/>
-<part name="R4" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-US_" device="0207/7" package3d_urn="urn:adsk.eagle:package:23493/2" value="270R"/>
+<part name="R1" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-US_" device="0207/7" package3d_urn="urn:adsk.eagle:package:23493/2" value="220R"/>
+<part name="R2" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-US_" device="0207/7" package3d_urn="urn:adsk.eagle:package:23493/2" value="220R"/>
+<part name="R3" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-US_" device="0207/7" package3d_urn="urn:adsk.eagle:package:23493/2" value="220R"/>
+<part name="R4" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-US_" device="0207/7" package3d_urn="urn:adsk.eagle:package:23493/2" value="220R"/>
 <part name="Q1" library="transistor-fet" library_urn="urn:adsk.eagle:library:396" deviceset="TN0604N3" device="" package3d_urn="urn:adsk.eagle:package:28535/2" value="2N7000"/>
 <part name="GND7" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 </parts>
@@ -17749,6 +17749,10 @@ by R. Vogg  15.March.2002</description>
 per gauge</text>
 <text x="134.62" y="88.9" size="1.778" layer="97">Connect to something like the Adafruit 206 cable, 
 crimp female rectangular cable</text>
+<text x="127" y="39.37" size="1.778" layer="97">LTL-1CHA amber LEDs
+If ~ 13mA &lt; 20mA
+Vf = 2.1V typ</text>
+<text x="109.22" y="46.99" size="1.778" layer="97" rot="MR0">53mA &lt; 200mA</text>
 </plain>
 <instances>
 <instance part="XP" gate="-1" x="39.37" y="182.88" smashed="yes">
@@ -17803,32 +17807,32 @@ crimp female rectangular cable</text>
 <attribute name="VALUE" x="115.57" y="74.93" size="1.778" layer="96"/>
 </instance>
 <instance part="XG1" gate="-1" x="45.72" y="60.96" smashed="yes">
-<attribute name="NAME" x="45.72" y="61.849" size="1.778" layer="95" rot="R180"/>
+<attribute name="NAME" x="44.45" y="60.071" size="1.778" layer="95" rot="MR0"/>
 </instance>
 <instance part="XG1" gate="-2" x="45.72" y="57.15" smashed="yes">
 <attribute name="VALUE" x="43.18" y="53.467" size="1.778" layer="96"/>
-<attribute name="NAME" x="45.72" y="58.039" size="1.778" layer="95" rot="R180"/>
+<attribute name="NAME" x="44.45" y="56.261" size="1.778" layer="95" rot="MR0"/>
 </instance>
 <instance part="XG2" gate="-1" x="45.72" y="53.34" smashed="yes">
-<attribute name="NAME" x="45.72" y="54.229" size="1.778" layer="95" rot="R180"/>
+<attribute name="NAME" x="44.45" y="52.451" size="1.778" layer="95" rot="MR0"/>
 </instance>
 <instance part="XG2" gate="-2" x="45.72" y="49.53" smashed="yes">
 <attribute name="VALUE" x="43.18" y="45.847" size="1.778" layer="96"/>
-<attribute name="NAME" x="45.72" y="50.419" size="1.778" layer="95" rot="R180"/>
+<attribute name="NAME" x="44.45" y="48.641" size="1.778" layer="95" rot="MR0"/>
 </instance>
 <instance part="XG3" gate="-1" x="45.72" y="45.72" smashed="yes">
-<attribute name="NAME" x="45.72" y="46.609" size="1.778" layer="95" rot="R180"/>
+<attribute name="NAME" x="44.45" y="44.831" size="1.778" layer="95" rot="MR0"/>
 </instance>
 <instance part="XG3" gate="-2" x="45.72" y="41.91" smashed="yes">
 <attribute name="VALUE" x="43.18" y="38.227" size="1.778" layer="96"/>
-<attribute name="NAME" x="45.72" y="42.799" size="1.778" layer="95" rot="R180"/>
+<attribute name="NAME" x="44.45" y="41.021" size="1.778" layer="95" rot="MR0"/>
 </instance>
 <instance part="XG4" gate="-1" x="45.72" y="38.1" smashed="yes">
-<attribute name="NAME" x="45.72" y="38.989" size="1.778" layer="95" rot="R180"/>
+<attribute name="NAME" x="44.45" y="37.211" size="1.778" layer="95" rot="MR0"/>
 </instance>
 <instance part="XG4" gate="-2" x="45.72" y="34.29" smashed="yes">
 <attribute name="VALUE" x="43.18" y="30.607" size="1.778" layer="96"/>
-<attribute name="NAME" x="45.72" y="35.179" size="1.778" layer="95" rot="R180"/>
+<attribute name="NAME" x="44.45" y="33.401" size="1.778" layer="95" rot="MR0"/>
 </instance>
 <instance part="GND6" gate="1" x="53.34" y="29.21" smashed="yes">
 <attribute name="VALUE" x="50.8" y="26.67" size="1.778" layer="96"/>
@@ -17857,8 +17861,8 @@ crimp female rectangular cable</text>
 <attribute name="VALUE" x="156.972" y="66.04" size="1.778" layer="96" rot="R90"/>
 </instance>
 <instance part="Q1" gate="G$1" x="114.3" y="45.72" smashed="yes">
-<attribute name="VALUE" x="102.87" y="45.72" size="1.778" layer="96"/>
-<attribute name="NAME" x="102.87" y="48.26" size="1.778" layer="95"/>
+<attribute name="VALUE" x="109.22" y="49.53" size="1.778" layer="96" rot="MR0"/>
+<attribute name="NAME" x="109.22" y="52.07" size="1.778" layer="95" rot="MR0"/>
 </instance>
 <instance part="GND7" gate="1" x="119.38" y="38.1" smashed="yes">
 <attribute name="VALUE" x="116.84" y="35.56" size="1.778" layer="96"/>
@@ -18015,7 +18019,7 @@ crimp female rectangular cable</text>
 <pinref part="JS" gate="A" pin="1"/>
 <wire x1="127" y1="91.44" x2="118.11" y2="91.44" width="0.1524" layer="91"/>
 <junction x="118.11" y="91.44"/>
-<label x="110.49" y="91.44" size="1.778" layer="95"/>
+<label x="116.84" y="91.44" size="1.778" layer="95" rot="MR0"/>
 </segment>
 <segment>
 <pinref part="U1" gate="G$1" pin="RC1"/>
@@ -18029,7 +18033,7 @@ crimp female rectangular cable</text>
 <pinref part="JS" gate="A" pin="2"/>
 <wire x1="127" y1="88.9" x2="118.11" y2="88.9" width="0.1524" layer="91"/>
 <junction x="118.11" y="88.9"/>
-<label x="110.49" y="88.9" size="1.778" layer="95"/>
+<label x="116.84" y="88.9" size="1.778" layer="95" rot="MR0"/>
 </segment>
 <segment>
 <pinref part="U1" gate="G$1" pin="RC2"/>
@@ -18043,7 +18047,7 @@ crimp female rectangular cable</text>
 <pinref part="JS" gate="A" pin="3"/>
 <wire x1="127" y1="86.36" x2="118.11" y2="86.36" width="0.1524" layer="91"/>
 <junction x="118.11" y="86.36"/>
-<label x="110.49" y="86.36" size="1.778" layer="95"/>
+<label x="116.84" y="86.36" size="1.778" layer="95" rot="MR0"/>
 </segment>
 <segment>
 <pinref part="U1" gate="G$1" pin="RC3"/>
