@@ -283,7 +283,7 @@ init_rpi_spi:
     ; SCK, SDI (MOSI), SDO (MISO), SS?
     banksel SSP1CON1
     
-    ; SPI Slave mode, clock = SCK pin, SS pin control disabled
+    ; SPI child mode, clock = SCK pin, SS pin control disabled
     movlw SSP1CON1_SSPEN_MASK | 0b0101
     movwf SSP1CON1
 
