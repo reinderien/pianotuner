@@ -297,3 +297,12 @@ A month, more math and experimentation later, the LED fader is done. As it turns
 ![bright LED](https://raw.githubusercontent.com/reinderien/pianotuner/master/journal-pics/led-fading.jpg)
 
 The very bright red LED used in this test will not be used in the final system but is working fine nevertheless. This one is so bright that it illuminates my ceiling at 20mA.
+
+### Nov 25, 2020
+
+New parts ordered: 
+
+- the protoboard where stuff will get soldered (though-hole only), 
+- the nice amber LEDs, 
+- some rectangular cables for SPI, and 
+- some rail-to-rail operational amplifiers - only one is needed as a buffer for a digital-to-analog converter output; the other outputs have buffers already.
