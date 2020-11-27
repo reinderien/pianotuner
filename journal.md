@@ -69,11 +69,22 @@ expensive but look incredible.
 
 ![Raspberry Pi sitting outside of the box](https://raw.githubusercontent.com/reinderien/pianotuner/master/journal-pics/pi-with-box.jpg)
 
-Pictured above: temporary keyboard on the bottom; open box (so far unmodified) in the middle with the Raspberry Pi board sitting on top of it; USB microphone sticking out to the right. The ribbon cable is for a real-time clock that is also temporary. On the left you can see the twisted brown cotton vintage-style 120VAC cord.
+Pictured above: temporary keyboard on the bottom; open box (so far unmodified) 
+in the middle with the Raspberry Pi board sitting on top of it; USB microphone 
+sticking out to the right. The ribbon cable is for a real-time clock that is 
+also temporary. On the left you can see the twisted brown cotton vintage-style 
+120VAC cord.
 
 ![Power components sitting in box](https://raw.githubusercontent.com/reinderien/pianotuner/master/journal-pics/supply-in-box.jpg)
 
-Pictured above: power components sitting in a temporary arrangement in the box. Far centre left is the brown 120VAC cord, running to a brass stress relief in the middle that will eventually be in the side of the box. Centre is a white marette to the switch. Lower left is the antique switch that will be mounted to the exterior of the box. Lower right is the MeanWell power supply; more rugged and well-ventilated than the typical cell phone charger. The red-yellow cord runs 5V from the power supply to a small green terminal block, in turn through a USB-C cable to the Raspberry Pi on the upper left.
+Pictured above: power components sitting in a temporary arrangement in the box. 
+Far centre left is the brown 120VAC cord, running to a brass stress relief in 
+the middle that will eventually be in the side of the box. Centre is a white 
+marette to the switch. Lower left is the antique switch that will be mounted to 
+the exterior of the box. Lower right is the MeanWell power supply; more rugged 
+and well-ventilated than the typical cell phone charger. The red-yellow cord 
+runs 5V from the power supply to a small green terminal block, in turn through a 
+USB-C cable to the Raspberry Pi on the upper left.
 
 ### Oct 2, 2020
 
@@ -292,11 +303,15 @@ Continuing the silliness above, I've posted a
 
 ### Nov 24, 2020
 
-A month, more math and experimentation later, the LED fader is done. As it turns out, the luminosity transfer function seems to be visually exponential so I can get away with a linear ramp. 
+A month, more math and experimentation later, the LED fader is done. As it turns 
+out, the luminosity transfer function seems to be visually exponential so I can 
+get away with a linear ramp. 
 
 ![bright LED](https://raw.githubusercontent.com/reinderien/pianotuner/master/journal-pics/led-fading.jpg)
 
-The very bright red LED used in this test will not be used in the final system but is working fine nevertheless. This one is so bright that it illuminates my ceiling at 20mA.
+The very bright red LED used in this test will not be used in the final system 
+but is working fine nevertheless. This one is so bright that it illuminates my 
+ceiling at 20mA.
 
 ### Nov 25, 2020
 
@@ -305,4 +320,24 @@ New parts ordered:
 - the protoboard where stuff will get soldered (though-hole only), 
 - the nice amber LEDs, 
 - some rectangular cables for SPI, and 
-- some rail-to-rail operational amplifiers - only one is needed as a buffer for a digital-to-analog converter output; the other outputs have buffers already.
+- some rail-to-rail operational amplifiers - only one is needed as a buffer for 
+  a digital-to-analog converter output; the other outputs have buffers already.
+
+### Nov 26, 2020
+
+Did a rough layout of the digital-to-analog converter circuit as it will be on
+the protoboard.
+
+![Eagle protoboard layout](https://raw.githubusercontent.com/reinderien/pianotuner/master/journal-pics/protoboard-eagle.png)
+
+- Upper left: the power entry block
+- Mid-left: the buffer chip "U2" for gauges. Only one of the two channels is 
+  strictly necessary, but use both to offload a tiny bit more current from the 
+  MCU and prevent floating.
+- Centre: the MCU (microcontroller) "U1" that the Raspberry Pi will talk to, 
+  with its SPI (serial port) "JS" on the bottom.
+- Lower-right: gauge backlight PWM driving circuit, four-channel
+- Upper-right: programming/debug connector "JD".
+
+The red traces are copper on the board's top layer. The thin yellow lines are
+ratsnest that I need to wire and solder myself.
