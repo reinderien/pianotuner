@@ -1,4 +1,5 @@
 #include <xc.inc>
+#include "receive.inc"
 
 ; CONFIG1
 #if IsDebug==true
@@ -28,6 +29,14 @@
     ; leave DEBUG up to the programmer
     config LVP=OFF      ; Low-voltage programming disabled
     
+    
+; If RAM is needed - which it currently isn't, outside of SFRs
+; psect variables, class=COMMON, space=SPACE_DATA, delta=1, noexec
+; some_var:
+    ; ds 1
+    
+    
+; A labelled program section (psect) that does not require ROM paging
 code_psect macro name
     psect psect_&name, class=NEARCODE, space=SPACE_CODE, delta=2
     name:
@@ -48,24 +57,7 @@ code_psect por_vec
     goto init
  
 code_psect isr_vec
-fade_disable:
-    banksel PIR1
-    btfss TMR2IF
-    retfie
-    
-    ; Per 27.6.1, regardless of EN, if shutdown is active, output will take the
-    ; "shutdown override" value from ASDAC - which we've set to 1
-    banksel COG1CON0
-    bsf G1ASE  ; Auto-shutdown enable
-    bcf G1EN   ; Disable the COG
-    banksel PWMEN
-    clrf PWMEN ; Disable PWM5, 6
-    banksel T2CON
-    bcf T2ON   ; Disable the timer (manual due to free-run mode) 
-    banksel PIE1
-    bcf TMR2IE ; Disable timer int
-    banksel PIR1
-    bcf TMR2IF ; Clear the timer int flag  
+    ; Unused; interrupts are used to wake up main
     retfie
     
 code_psect init
@@ -73,7 +65,8 @@ code_psect init
     ; OSCCON, PIEx and TRIS share bank 1 - set the latter two in sequence here
     
 select_interrupts:
-    bsf TMR2IE
+    bsf TMR2IE  ; Fade disable timer
+    bsf SSP1IE  ; SPI receive
     
 init_ports:
     ; RA1: ana out OPA1OUT (DAC1)
@@ -136,7 +129,6 @@ init_pps:
     movwf SSPDATPPS
     movlw 0b010011  ; RC3
     movwf SSPCLKPPS
-    ; SSPSSPPS ? 
     
     movlw 0x55
     movwf PPSLOCK
@@ -280,19 +272,54 @@ init_gauge_opamp:
     
 init_rpi_spi:
     ; MSSP SPI child mode on all-PPS selected pins
-    ; SCK, SDI (MOSI), SDO (MISO), SS?
+    ; SCK, SDI (MOSI), SDO (MISO)
     banksel SSP1CON1
     
-    ; SPI child mode, clock = SCK pin, SS pin control disabled
+    ; SPI child mode, SS pin control disabled
+    ; clock = SCK pin with idle-low polarity
     movlw SSP1CON1_SSPEN_MASK | 0b0101
     movwf SSP1CON1
+    
+    ; TSCHSCK input high (also low) time, child mode, >= Tcy + 20 (ns)
+    ; Instruction cycle time Tcy = 125 ns
+    ; Sclk <= 3.45MHz from the Pi
 
 enable_interrupts:
     bsf PEIE  ; Every interrupt we use is on a "peripheral"
-    bsf GIE
+    ; We don't actually need an interrupt vector; we just use interupts to wake
+    ; bsf GIE
     
 main:
+    banksel PIR1
+fade_wait:
     sleep
-    goto main
-
+    btfss TMR2IF
+    goto fade_wait
+    
+fade_disable:
+    ; Per 27.6.1, regardless of EN, if shutdown is active, output will take the
+    ; "shutdown override" value from ASDAC - which we've set to 1
+    banksel COG1CON0
+    bsf G1ASE  ; Auto-shutdown enable
+    bcf G1EN   ; Disable the COG
+    banksel PWMEN
+    clrf PWMEN ; Disable PWM5, 6
+    banksel T2CON
+    bcf T2ON   ; Disable the timer (manual due to free-run mode) 
+    banksel PIE1
+    bcf TMR2IE ; Disable timer int
+    banksel PIR1
+    bcf TMR2IF ; Clear the timer int flag
+    
+rx_reset:
+    ; Reset the receiver state to here if something smells
+    
+    ; Expand our macros from receive.inc
+    dac_10b_rx 1
+    dac_10b_rx 2
+    dac_10b_rx 5
+    dac_5b_rx 4
+    
+    goto rx_reset
+    
     end por_vec

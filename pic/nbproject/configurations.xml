@@ -13,6 +13,7 @@
                    displayName="Source Files"
                    projectFiles="true">
       <itemPath>main.asm</itemPath>
+      <itemPath>receive.inc</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
