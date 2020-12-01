@@ -341,3 +341,67 @@ the protoboard.
 
 The red traces are copper on the board's top layer. The thin yellow lines are
 ratsnest that I need to wire and solder myself.
+
+### Nov 30, 2020
+
+This `efind` script shows that it's possible to null a fixed, positive offset 
+voltage on the MCP6002 operational amplifier I use for DAC buffering.
+
+```python
+    Vdd = 5
+    Voff = 4.5e-3
+    R2 = 0
+
+    def find_r4(R6: float, R5: float, R1: float) -> float:
+        return (R5/R6 + 1) * R1 * Voff/Vdd
+
+    def find_r3(R6: float, R5: float, R1: float, R4: float):
+        R4R3 = R5/R6 - R4/R1
+        if R4R3 == 0:
+            return float('inf')
+        return R4 / R4R3
+
+    def find_vo(Vi: float, R6: float, R5: float, R1: float, R4: float, R3: float) -> float:
+        Vin = Vi*R6/(R6 + R5) + Voff
+        I3 = Vin/(R2 + R3)
+        I1 = (Vdd - Vin)/R1
+        I4 = I3 - I1
+        Vo = Vin + R4*I4
+        return Vo
+
+    s = Solver(
+        (
+            Resistor('6', E24, None, 1e6, 10e6),
+            Resistor('5', E96, None, 1e3, 10e3),
+            Resistor('1', E96, None, 1e6, 10e6),
+            Resistor('4', E96, find_r4),
+            Resistor('3', E96, find_r3),
+        ),
+        (
+            Output(
+                'Vol', 'V', 0,
+                partial(find_vo, 0),
+            ),
+            Output(
+                'Voh', 'V', Vdd,
+                partial(find_vo, 5),
+            ),
+        ),
+        1e-5,
+    )
+    s.solve()
+    s.print()
+```
+
+It outputs:
+
+```
+    R6      R5      R1      R4      R3        Vol      Err        Voh      Err
+1.5 MΩ 4.42 kΩ 1.13 MΩ 1.02 kΩ  499 kΩ  -13.99 nV -1.4e-08    5.000 V  3.7e-07
+1.6 MΩ 6.49 kΩ 1.87 MΩ 1.69 kΩ  536 kΩ  -461.3 nV -4.6e-07    5.000 V  1.9e-06
+1.0 MΩ 10.0 kΩ 1.00 MΩ   909 Ω  100 kΩ  -4.500 nV -4.5e-09    5.000 V -5.0e-06
+1.0 MΩ 10.0 kΩ 10.0 MΩ 9.09 kΩ 1.00 MΩ  -4.500 nV -4.5e-09    5.000 V -5.0e-06
+```
+
+But I won't actually do this nulling, for reasons listed
+[here](https://electronics.stackexchange.com/questions/534855).
