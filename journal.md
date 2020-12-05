@@ -430,3 +430,27 @@ Next is to:
   put the SPI module in 8-bit, `SPI_NO_CS` mode
 - work off of the Raspberry Pi/Linux
   [SPI test code](https://github.com/raspberrypi/linux/blob/rpi-5.4.y/tools/spi/spidev_test.c)
+  
+### December 5, 2020
+  
+If I end up adding a back-illuminated bead for power indication (which now
+seems a little redundant to me given that the gauges are already illuminated
+on power), one option if I can't find anything better is this thing from
+Michael's:
+
+- Item [10402037](https://canada.michaels.com/en/bead-gallery-crystal-faceted-glass-round-beads-18mm/10402037.html)
+- 18mm diameter faceted glass
+- It's labelled "crystal", though I don't know how far to trust that
+  
+A very attractive option from the Bead Boutique is their
+[quartz "nuggets"](https://thebeadboutiqueon.com/products/22x15mm-faceted-quartz-nugget-beads):
+
+- Natural clear quartz
+- 22x15mm "medium focal" size
+
+As for gauge illumination, the LTL-1CHA is way (way, *way*) too dim to be
+useful for backlighting. On the next DigiKey order I'll be switching to high-
+brightness amber LEDs from Cree. Looking at the gauge interior again, it does
+look like a LED mounted at the inner rear of the gauge would need an eyeballed
+30 degrees to either side, or 60 degres total, without some other diffusion
+scheme.
