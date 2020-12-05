@@ -405,3 +405,28 @@ It outputs:
 
 But I won't actually do this nulling, for reasons listed
 [here](https://electronics.stackexchange.com/questions/534855).
+
+### December 4, 2020
+
+When my brothers play Path of Exile with me, they have taken to calling its
+[crafting workbench](https://pathofexile.gamepedia.com/Crafting_Bench) "[my]
+actual workbench" due to its electrified animations. Currently, on the first
+day of my latest vacation, my mobile workbench looks like this:
+
+![Breadboard connected](https://raw.githubusercontent.com/reinderien/pianotuner/master/journal-pics/breadboard-connected.jpg)
+
+This marks the first time that the breadboard is connected to the Pi via a 
+4-conductor wire carrying SPI. The SPI microcontroller firmware was written
+last weekend but hasn't been tested yet. The buffer op-amp is connected and
+initial gauge tests work. The gauge input posts are left-negative, right-
+positive when looking from the front.
+
+I've also (finally) started using a 64-bit OS for the Raspberry Pi 4.
+
+Next is to:
+
+- based on the 
+  [documentation](https://www.raspberrypi.org/documentation/hardware/raspberrypi/spi/README.md#software),
+  put the SPI module in 8-bit, `SPI_NO_CS` mode
+- work off of the Raspberry Pi/Linux
+  [SPI test code](https://github.com/raspberrypi/linux/blob/rpi-5.4.y/tools/spi/spidev_test.c)
