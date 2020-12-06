@@ -9,7 +9,7 @@ typedef int16_t sample_t;
 
 
 CaptureContext *capture_init(void);
-void capture_deinit(CaptureContext*);
+void capture_deinit(CaptureContext**);
 
 void capture_period(
     CaptureContext *ctx,
