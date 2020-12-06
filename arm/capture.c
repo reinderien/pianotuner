@@ -580,12 +580,13 @@ CaptureContext *capture_init(void)
 }
 
 
-void capture_deinit(CaptureContext *ctx)
+void capture_deinit(CaptureContext **ctx)
 {
-    warn_snd(snd_pcm_close(ctx->pcm));
+    warn_snd(snd_pcm_close((*ctx)->pcm));
     snd_config_update_free_global();
 
-    free(ctx);
+    free(*ctx);
+    *ctx = NULL;
 
     puts("Capture deinitialized");
 }

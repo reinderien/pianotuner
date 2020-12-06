@@ -17,16 +17,10 @@ static void cleanup()
     putchar('\n'); // after the \r from consume()
 
     if (capture)
-    {
-        capture_deinit(capture);
-        capture = NULL;
-    }
+        capture_deinit(&capture);
 
     if (gauge)
-    {
-        gauge_deinit(gauge);
-        gauge = NULL;
-    }
+        gauge_deinit(&gauge);
 }
 
 
