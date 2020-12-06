@@ -133,5 +133,20 @@ $ ls -l /dev/spi*
 crw-rw---- 1 root spi 153, 0 Dec  5 17:06 /dev/spidev0.0
 ```
 
+```
+# First, guarantee sync; this requires at most two bytes
+echo -ne "\x00\x00" > /dev/spidev0.0
 
+# Channel 1: 1V, 205: 0b001_000_00 0b1100_1101
+echo -ne "\x20\xCD" > /dev/spidev0.0
+
+# Channel 2: 2V, 410: 0b010_000_01 0b1001_1010
+echo -ne "\x41\x9A" > /dev/spidev0.0
+
+# Channel 5: 3V, 614: 0b101_000_10 0b0110_0110
+echo -ne "\xA2\x66" > /dev/spidev0.0
+
+# Channel 4: 4V, 26, 0b100_11001
+echo -ne "\x99" > /dev/spidev0.0
+```
 
