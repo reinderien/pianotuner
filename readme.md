@@ -6,6 +6,9 @@
 
 - libasound2-dev (for compilation only)
 - libasound2 - underlying ALSA support
+- linux-libc-dev - Linux headers for SPI
+
+Remove pulseaudio.
 
 Todo: move to headless mode and blow away a pile of unneeded packages.
 
@@ -13,12 +16,16 @@ Todo: move to headless mode and blow away a pile of unneeded packages.
 
 ```
 # See https://rpf.io/configtxt
-dtparam=audio=on
+dtparam=spi=on
+
+dtoverlay=spi0-1cs
+
+arm_64bit=1
 
 # todo: turn off video
 ```
 
-### USB device details
+### Audio USB device details
 
 `dmesg`:
 
@@ -42,7 +49,7 @@ Bus 001 Device 003: ID 0d8c:013c C-Media Electronics, Inc. CM108 Audio Controlle
 
 ```
 **** List of CAPTURE Hardware Devices ****
-card 2: Device [USB PnP Sound Device], device 0: USB Audio [USB Audio]
+card 1: Device [USB PnP Sound Device], device 0: USB Audio [USB Audio]
   Subdevices: 1/1
   Subdevice #0: subdevice #0
 ```
@@ -50,6 +57,9 @@ card 2: Device [USB PnP Sound Device], device 0: USB Audio [USB Audio]
 `arecord -L`:
 
 ```
+default:CARD=Device
+    USB PnP Sound Device, USB Audio
+    Default Audio Device
 sysdefault:CARD=Device
     USB PnP Sound Device, USB Audio
     Default Audio Device
@@ -61,7 +71,17 @@ plughw:CARD=Device,DEV=0
     Hardware device with all software conversions
 ```
 
-### Input test
+Examine these lines in `/usr/share/alsa/alsa.conf`; the defaults should
+correspond to the correct card and device listed above:
+
+```
+defaults.ctl.card 1
+defaults.pcm.card 1
+defaults.pcm.device 0
+defaults.pcm.subdevice 0
+```
+
+### Audio input test
 
 ```
 $ arecord -D hw:CARD=Device,DEV=0 -c 1 -f S16_LE -r 48000 -d 1 -v output-test
@@ -92,4 +112,26 @@ Its setup is:
   appl_ptr     : 0
   hw_ptr       : 0
 ```
+
+### Verifying SPI
+
+```
+$ raspi-gpio get | grep SPI0
+GPIO 9: level=0 fsel=4 alt=0 func=SPI0_MISO pull=DOWN
+GPIO 10: level=0 fsel=4 alt=0 func=SPI0_MOSI pull=DOWN
+GPIO 11: level=0 fsel=4 alt=0 func=SPI0_SCLK pull=DOWN
+```
+
+```
+$ lsmod | grep spi
+spidev                 24576  0
+spi_bcm2835            24576  0
+```
+
+```
+$ ls -l /dev/spi*
+crw-rw---- 1 root spi 153, 0 Dec  5 17:06 /dev/spidev0.0
+```
+
+
 

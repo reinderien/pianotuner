@@ -5,15 +5,28 @@
 
 #include "capture.h"
 #include "freq.h"
+#include "gauge.h"
 
 
-static CaptureContext *capture;
+static CaptureContext *capture = NULL;
+static GaugeContext *gauge = NULL;
 
 
 static void cleanup()
 {
     putchar('\n'); // after the \r from consume()
-    capture_deinit(capture);
+
+    if (capture)
+    {
+        capture_deinit(capture);
+        capture = NULL;
+    }
+
+    if (gauge)
+    {
+        gauge_deinit(gauge);
+        gauge = NULL;
+    }
 }
 
 
@@ -25,14 +38,15 @@ static void handle_sigint(int signal)
 
 int main(int argc, const char **argv)
 {
-    capture = capture_init();
-
     if (atexit(cleanup))
     {
         perror("Failed to register deinit");
         exit(-1);
     }
     signal(SIGINT, handle_sigint);
+
+    capture = capture_init();
+    gauge = gauge_init();
 
     while (true)
         capture_period(capture, consume);

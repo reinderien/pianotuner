@@ -1,12 +1,12 @@
 #!/usr/bin/make -f
 
 # Requirements:
-# libasound2-dev libatlas-base-dev
+# libasound2-dev libatlas-base-dev linux-libc-dev
 # Also recommended: libasound2-dbgsym
 
 export
 
-objs = main.o capture.o freq.o
+objs = main.o capture.o freq.o gauge.o
 
 pkg = pkg-config --cflags alsa blas-atlas 
 

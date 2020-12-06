@@ -23,7 +23,8 @@ struct CaptureContextTag
     snd_output_t *output;
 	snd_pcm_t *pcm;
 	
-    unsigned rate, period, timeout_ms, timeout_us;
+    unsigned rate, timeout_ms, timeout_us;
+    long unsigned period;
     bool restart;
     snd_pcm_state_t prev_state;
 };
@@ -197,9 +198,13 @@ static void init_pcm(CaptureContext *restrict ctx)
 
     const float min_period = ctx->rate / FMIN;
     for (ctx->period = 1; ctx->period < min_period; ctx->period <<= 1);
+
+    // For some reason this has become more restrictive when moving from legacy
+    // 32-bit Raspbian to 64-bit Raspberry Pi OS; now the only accepted value is
+    // 1024.
     direction = 0;
-    check_snd(snd_pcm_hw_params_set_period_size(
-        ctx->pcm, hwparams, ctx->period, direction
+    check_snd(snd_pcm_hw_params_set_period_size_near(
+        ctx->pcm, hwparams, &ctx->period, &direction
     ));
 
     check_snd(snd_pcm_hw_params_set_buffer_size(
@@ -529,7 +534,7 @@ static void describe_params(const CaptureContext *restrict ctx)
     printf(
         "\n"
         "Constraints --------------------------------------------------------\n"
-        "  period : %u > %d\n"
+        "  period : %lu > %d (may fail in recent builds of Rpi)\n"
         "  rate   : %u > %d\n"
         "  fmin   : %.1f < %.1f\n"
         "  fmax   : %d > %d\n"
@@ -797,7 +802,7 @@ void capture_period(
     {
         fprintf(
             stderr,
-            "Short read %ld < %u\n",
+            "Short read %ld < %lu\n",
             frames,
             ctx->period
         );
