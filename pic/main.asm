@@ -106,13 +106,27 @@ init_ports:
     movwf ANSELB
     movlw 0b01000000
     movwf ANSELC
-    
-    ; All Schmitt trigger levels
+
+    ; Mostly Schmitt trigger levels; but:
+    ; In practice, the RPI sends an SPI clock of 0.88-3.92V, and a MOSI of
+    ; 0-3.28V. With our Vdd=5.2V,
+    ; TTL in: 0.80-2.00
+    ;  ST in: 1.04-4.16
+    ;    out: 0.60-4.50
+    ; So Schmitt levels are not appropriate for RC1,3.
+
     banksel INLVLA
-    comf INLVLA
-    comf INLVLB
-    comf INLVLC
-    
+    comf INLVLA ; Default TTL; switch to ST
+    comf INLVLB ; Default TTL; switch to ST
+    ; Default ST; switch to TTL for RC1,3
+    movlw 0b11110001
+    movwf INLVLC
+
+    ; To do a simple level-shift from our 5.2V to the Rpi's 3.3V on MISO, we
+    ; add an external pullup to its 3.3V pin and put MISO on RC2 in open-drain
+    banksel ODCONC
+    bsf ODC2
+
 init_pps:
     ; RC1: SDI (MOSI)
     ; RC2: SDO (MISO)
