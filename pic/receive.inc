@@ -23,7 +23,7 @@ spi_rx_&index:
     
     andlw ~0b11                ; Drop the actual DAC data
     xorlw index << index_posn  ; Compare with DAC index
-    btfsc ZERO                 ; Check for equality
+    btfss ZERO                 ; Check for equality
     goto rx_reset              ; Unexpected check value; reset receiver state
     
     banksel PIR1
