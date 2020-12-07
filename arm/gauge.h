@@ -8,7 +8,7 @@ typedef struct GaugeContextTag GaugeContext;
 
 
 GaugeContext *gauge_init(void);
-void gauge_deinit(GaugeContext*);
+void gauge_deinit(GaugeContext**);
 
 void gauge_message(
     GaugeContext *ctx,

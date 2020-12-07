@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <time.h>
+
 #include "capture.h"
 #include "freq.h"
 #include "gauge.h"
@@ -42,7 +44,14 @@ int main(int argc, const char **argv)
     capture = capture_init();
     gauge = gauge_init();
 
+    const struct timespec rqtp_1ms = {.tv_nsec = 1000000};
+
     while (true)
-        capture_period(capture, consume);
+    {
+        gauge_message(gauge, 0.2, 0.4, 0.6, 0.8);
+        nanosleep(&rqtp_1ms, NULL);
+
+        // capture_period(capture, consume);
+    }
 }
 

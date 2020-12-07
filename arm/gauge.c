@@ -1,8 +1,14 @@
 #include <assert.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <linux/spi/spidev.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <stropts.h>
+#include <unistd.h>
 
 #include "gauge.h"
 
@@ -10,8 +16,7 @@
 #define DEV_FILENAME "/dev/spidev0.0"
 const unsigned
     TARGET_SPEED = 1000000,
-    INDEX_POS = 5,
-    MESSAGE_LEN = 7;
+    INDEX_POS = 5;
 const uint16_t
     CH1_MASK = (1 << 10) - 1,
     CH2_MASK = CH1_MASK,
@@ -23,10 +28,7 @@ struct GaugeContextTag
 {
     uint32_t mode, speed;
     uint8_t word_bits;
-    uint8_t message[MESSAGE_LEN];
-
     int fd;
-    struct spi_ioc_transfer transfer;
 };
 
 
@@ -71,7 +73,7 @@ GaugeContext *gauge_init(void)
     check_c(
         ioctl(
             ctx->fd, SPI_IOC_WR_BITS_PER_WORD, &ctx->word_bits
-        ) == -1.
+        ) == -1,
         "failed to set SPI word bits"
     );
 
@@ -83,22 +85,16 @@ GaugeContext *gauge_init(void)
         "failed to get SPI max speed"
     );
 
-    printf("Current speed %u; changing to %u", orig_speed, TARGET_SPEED);
+    printf("Current SPI speed %u; changing to %u\n", orig_speed, TARGET_SPEED);
     ctx->speed = TARGET_SPEED;
     if (warn_c(
         ioctl(
-            ctx->fd, SPI_IOC_WT_MAX_SPEED_HZ, &ctx->speed
+            ctx->fd, SPI_IOC_WR_MAX_SPEED_HZ, &ctx->speed
         ) == -1,
         "failed to set SPI max speed"
     )) {
         ctx->speed = orig_speed;
     }
-
-    ctx->transfer = (spi_ioc_transfer)
-    {
-        .tx_buf = ctx->message,
-        .len = MESSAGE_LEN
-    };
 
     return ctx;
 }
@@ -117,7 +113,7 @@ void gauge_message(
              u5 = v5*CH5_MASK;
     uint8_t u4 = v4*CH4_MASK;
 
-    ctx->message = (uint8_t[]){
+    const uint8_t message[] = {
         (1 << INDEX_POS) | (u1 >> 8),
         u1,
         (2 << INDEX_POS) | (u2 >> 8),
@@ -127,13 +123,19 @@ void gauge_message(
         (4 << INDEX_POS) | u4
     };
 
+    struct spi_ioc_transfer transfer =
+    {
+        .tx_buf = (uint64_t)message,
+        .len = sizeof(message)
+    };
+
     const int n_messages = 1;
 
     warn_c(
         ioctl(
             ctx->fd,
             SPI_IOC_MESSAGE(n_messages),
-            &ctx->transfer
+            &transfer
         ) == -1,
         "Failed to transfer SPI message"
     );
@@ -142,12 +144,12 @@ void gauge_message(
 
 void gauge_deinit(GaugeContext **ctx)
 {
-    warn_c(close(*ctx->fd) == -1, "Failed to close SPI handle");
+    warn_c(close((*ctx)->fd) == -1, "Failed to close SPI handle");
 
     free(*ctx);
     *ctx = NULL;
 
-    puts("Gauge deinitialized");
+    puts("Gauges deinitialized");
 }
 
 
