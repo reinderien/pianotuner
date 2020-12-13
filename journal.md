@@ -454,3 +454,40 @@ brightness amber LEDs from Cree. Looking at the gauge interior again, it does
 look like a LED mounted at the inner rear of the gauge would need an eyeballed
 30 degrees to either side, or 60 degres total, without some other diffusion
 scheme.
+
+### December 12, 2020
+
+The woodworking portion began. I sought some external expertise from my parents
+about the best way to cut circular holes for the gauges. I had started with a
+drill and then (massive) reciprocating saw, not realizing that we have a jigsaw
+("autoscroller") better-suited to the job. All of the gauge holes were then done
+by drill, jigsaw, and then dremel sanding to creep up to a snug fit.
+
+The first (gnarly) cuts:
+
+![First cut](https://raw.githubusercontent.com/reinderien/pianotuner/master/journal-pics/first-cut.jpg)
+
+This was time-consuming but straightforward. The rear power intake stress relief
+was also straightforward. The power indicator was especially lucky: the quartz
+teardrop, on its end, fits very well into a hole made by a standard drillbit and
+is so snug that it probably won't require glue.
+
+The biggest problem was the power switch. The threaded shaft was too short
+compared to the thickness of the wood. A fancy solution would be to recess the
+front plate, but I'm not good enough to do that and anyway it wouldn't look as
+good as the alternative: ablate a hole for the switch body on the inside of the
+box. Given that the box is already assembled and I refuse to disassemble it,
+this was a huge pain in the ass and required many passes with an awkwardly-
+angled dremel. I got it down to the point where there was barely enough thread
+protruding for the front finishing nut to grab, and: good enough.
+
+![First assembly](https://raw.githubusercontent.com/reinderien/pianotuner/master/journal-pics/first-assembly.jpg)
+
+To do:
+
+- Still need at least one more hole, for the microphone and/or the horn neck
+- The wire cleats still need to be attached to the back
+- Replacement gauge backlights ordered and installed
+- Power indicator dimmed (330R is way too bright) and LED somehow mounted
+- Ideally brass screws installed for all gauges
+- Maybe re-sand and stain surface? Or leave it looking beat up.
