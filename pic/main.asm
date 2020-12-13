@@ -288,7 +288,10 @@ init_rpi_spi:
     ; MSSP SPI child mode on all-PPS selected pins
     ; SCK, SDI (MOSI), SDO (MISO)
     banksel SSP1CON1
-    
+
+    ; Data read on low-to-high clock
+    bsf CKE
+
     ; SPI child mode, SS pin control disabled
     ; clock = SCK pin with idle-low polarity
     movlw SSP1CON1_SSPEN_MASK | 0b0101
