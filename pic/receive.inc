@@ -17,7 +17,7 @@ spi_rx_&index:
     ; The upper six bits of DACxREFH are unimplemented so this is safe. 
     ; Don't load via DACxLD until this is validated.
     banksel SSP1BUF
-    movf SSP1BUF           ; Load from MSSP receive buffer, into...
+    movf SSP1BUF, W        ; Load from MSSP receive buffer, into...
     banksel DAC&index&REFH
     movwf DAC&index&REFH   ; 2 LSBs of high DAC byte (MSBs of 10-bit DAC value)
     
@@ -31,7 +31,7 @@ spi_rx_&index:
     bcf SSP1IF
     
     banksel SSP1BUF
-    movf SSP1BUF          ; Load from MSSP receive buffer, into...
+    movf SSP1BUF, W       ; Load from MSSP receive buffer, into...
     banksel DAC&index&REFL
     movwf DAC&index&REFL  ; 8 LSBs of 10-bit DAC value
     ; Load all 10 bits of DAC value
