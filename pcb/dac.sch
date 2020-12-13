@@ -18184,6 +18184,10 @@ ease, unused</text>
 <text x="142.24" y="189.23" size="3.81" layer="97">Debug</text>
 <text x="25.4" y="207.01" size="3.81" layer="97">Power</text>
 <text x="78.74" y="205.74" size="3.81" layer="97">Control</text>
+<text x="129.54" y="83.82" size="1.4224" layer="97" rot="R180">If this is safely less than 100mA,
+an external driver is not necessary
+and RB0 in HIDRV can be used
+instead</text>
 </plain>
 <instances>
 <instance part="XP" gate="-1" x="26.67" y="195.58" smashed="yes">
