@@ -157,7 +157,7 @@ void gauge_deinit(GaugeContext **ctx)
 
 void gauge_demo(const GaugeContext *ctx)
 {
-    const struct timespec rqtp_1ms = {.tv_sec=1, .tv_nsec = 10000000};
+    const struct timespec rqtp_1ms = {.tv_sec=0, .tv_nsec = 10000000};
 
     float f1=0.1, f2=0.3, f3=0.5, f4=0.7;
     // 0.1/s
