@@ -7,7 +7,7 @@
     config WDTE=OFF     ; Mandatory for debug: watchdog disabled
     config PWRTE=OFF    ; Power-up timer disabled
 #else
-    config WDTE=ON      ; Watchdog timer enabled even in sleep
+    config WDTE=OFF     ; For now leave it off anyway
     config PWRTE=ON     ; Power-up timer enabled
 #endif
     config FOSC=INTOSC  ; RA7 has I/O. High-freq intern osc (HFINTOSC) used.
