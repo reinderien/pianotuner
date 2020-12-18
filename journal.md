@@ -452,7 +452,7 @@ As for gauge illumination, the LTL-1CHA is way (way, *way*) too dim to be
 useful for backlighting. On the next DigiKey order I'll be switching to high-
 brightness amber LEDs from Cree. Looking at the gauge interior again, it does
 look like a LED mounted at the inner rear of the gauge would need an eyeballed
-30 degrees to either side, or 60 degres total, without some other diffusion
+30 degrees to either side, or 60 degrees total, without some other diffusion
 scheme.
 
 ### December 12, 2020
@@ -491,3 +491,20 @@ To do:
 - Power indicator dimmed (330R is way too bright) and LED somehow mounted
 - Ideally brass screws installed for all gauges
 - Maybe re-sand and stain surface? Or leave it looking beat up.
+
+# December 13, 2020
+
+For gauge fastening nuts, they need to be #4-40 (slightly less than 1/8"
+diameter shaft),  slightly less than 1/4" diameter head, and at least 3/4" long
+if a nut is to be applied on the inside. McMaster-Carr carries
+[brass bolts](https://www.mcmaster.com/92443A841/) that would do the job but
+apparently some family members have equivalents in stock, so I won't place an
+order. (I also considered Acklands-Grainger but it seems that they aren't
+shipping anything until the end of January.)
+
+# December 17, 2020
+
+Working moving gauge demo end-to-end. Also, the new backlights are in, and have
+a very nice hue and what will certainly be enough brightness. I'm worried about
+how narrow the light cone is, but I'll deal with that with a secondary diffuser
+if I have to.
