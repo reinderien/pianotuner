@@ -311,7 +311,7 @@ main:
 fade_wait:
     sleep
     btfss TMR2IF
-    goto fade_wait
+    bra fade_wait
     
 fade_disable:
     ; Per 27.6.1, regardless of EN, if shutdown is active, output will take the
@@ -331,7 +331,9 @@ fade_disable:
 rx_reset:
     ; Reset the receiver state to here if something smells
     
-    ; Expand our macros from receive.inc
+spi_rx_first:
+    sleep  ; until we get a serial interrupt for the first byte
+    
     dac_10b_rx 1
     dac_10b_rx 2
     dac_10b_rx 5
