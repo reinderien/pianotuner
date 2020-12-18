@@ -2,12 +2,14 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <linux/spi/spidev.h>
+#include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stropts.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "gauge.h"
@@ -101,7 +103,7 @@ GaugeContext *gauge_init(void)
 
 
 void gauge_message(
-    GaugeContext *ctx,
+    const GaugeContext *ctx,
     float v1,
     float v2,
     float v4,
@@ -152,4 +154,24 @@ void gauge_deinit(GaugeContext **ctx)
     puts("Gauges deinitialized");
 }
 
+
+void gauge_demo(const GaugeContext *ctx)
+{
+    const struct timespec rqtp_1ms = {.tv_sec=1, .tv_nsec = 10000000};
+
+    float f1=0.1, f2=0.3, f3=0.5, f4=0.7;
+    // 0.1/s
+    const float delta = 0.1 / 1e9 * rqtp_1ms.tv_nsec;
+
+    while (true)
+    {
+        gauge_message(ctx, f1+0.2, f2+0.2, f3+0.2, f4+0.2);
+        nanosleep(&rqtp_1ms, NULL);
+
+        f1 = fmod(f1, 0.7)+delta;
+        f2 = fmod(f2, 0.7)+delta;
+        f3 = fmod(f3, 0.7)+delta;
+        f4 = fmod(f4, 0.7)+delta;
+    }
+}
 

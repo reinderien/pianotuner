@@ -18,7 +18,7 @@ else
 	cflags += -s -O3 -flto -fomit-frame-pointer -march=native
 endif
 
-ldflags = $(shell ${pkg} --libs) -Wl,--warn-common
+ldflags = $(shell ${pkg} --libs) -lm -Wl,--warn-common
 ifndef DEBUG
 	ldflags += -Wl,--relax,-O3
 endif
