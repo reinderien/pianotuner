@@ -18140,8 +18140,8 @@ temperature compensated, 6,2 V</description>
 <part name="GND5" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 <part name="GND6" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 <part name="P+4" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="+5V" device=""/>
-<part name="R12" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-US_" device="0207/2V" package3d_urn="urn:adsk.eagle:package:23490/1" value="47R"/>
-<part name="R45" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-US_" device="0207/2V" package3d_urn="urn:adsk.eagle:package:23490/1" value="47R"/>
+<part name="R12" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-US_" device="0207/2V" package3d_urn="urn:adsk.eagle:package:23490/1" value="38R"/>
+<part name="R45" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-US_" device="0207/2V" package3d_urn="urn:adsk.eagle:package:23490/1" value="38R"/>
 <part name="U2" library="linear" library_urn="urn:adsk.eagle:library:262" deviceset="MCP602" device="P" package3d_urn="urn:adsk.eagle:package:16409/2" value="MCP6002-I/P"/>
 <part name="GND8" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 <part name="P+5" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="+5V" device=""/>
@@ -18174,7 +18174,7 @@ Adafruit 206, or
 Samtec IDSS-05-S-05.75-T-ST4</text>
 <text x="146.05" y="96.52" size="1.778" layer="97" rot="MR180">Vf = 2.1V typ, If ≤ 30mA
 C5xx-Axx amber LEDs ×2×2:
-If ~ 21.3mA, R12, R45
+If ~ 26.3mA, R12, R45
 C5xx-Rxx red LED ×1:
 If ~ 1.3mA, Rs</text>
 <text x="106.68" y="167.64" size="1.016" layer="97">For layout
