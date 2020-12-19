@@ -62,7 +62,8 @@ code_psect isr_vec
     
 code_psect init
     ; Leave WDT at default 2s
-    ; OSCCON, PIEx and TRIS share bank 1 - set the latter two in sequence here
+    ; OSCCON and PIEx share bank 1 - set the latter two in sequence here
+    ; TRIS could be done this way too but the order doesn't suit this right now
     
 select_interrupts:
     bsf TMR2IE  ; Fade disable timer
@@ -71,32 +72,41 @@ select_interrupts:
 init_ports:
     ; RA1: ana out OPA1OUT (DAC1)
     ; RA4: ana out DAC4
+    ; RB0: dig out COG1A
     ; RB1: ana out OPA2OUT (DAC2)
     ; RB6: dig in  ICSPCLK
     ; RB7: dig in  ICSPDAT
     ; RC1: SDI (MOSI)
     ; RC2: SDO (MISO)
     ; RC3: SCK
-    ; RC4: dig out COG1A
     ; RC6: ana out OPA3OUT (DAC5)
     ; RE3: dig in  MCLR
     ; Unused pins dig out driven to 0.
     ; Leave slew rate limitation enabled.
     ; Leave WPUEN disabled.
     
+    ; Zero output latches except for the two OD outputs which should remain open
+    ; for now
+    banksel LATA
+    clrf LATA
+    movlw 0b00000001
+    movwf LATB
+    movlw 0b00000100
+    movwf LATC
+    
+    ; Tristate default is input. Before setting LED fade pin to output, enable
+    ; high drive mode.
+    banksel HIDRVB
+    bsf HIDB0
+    
     ; Tristates
+    banksel TRISA
     movlw 0b00010010
     movwf TRISA
     movlw 0b11000010
     movwf TRISB
     movlw 0b01001010
     movwf TRISC
-    
-    ; Zero output latches
-    banksel LATA
-    clrf LATA
-    clrf LATB
-    clrf LATC
     
     ; The only analogue pins are for DAC/OPA
     banksel ANSELA
@@ -118,25 +128,29 @@ init_ports:
     banksel INLVLA
     comf INLVLA ; Default TTL; switch to ST
     comf INLVLB ; Default TTL; switch to ST
-    ; Default ST; switch to TTL for RC1,3
+    ; Default ST; switch to TTL for RC1-3
     movlw 0b11110001
     movwf INLVLC
 
+    banksel ODCONB
+    ; Open drain for LED fade. There's an error in the include file where bit
+    ; macros for ODCONA/B are half-missing.
+    bsf ODCONB, 0
     ; To do a simple level-shift from our 5.2V to the Rpi's 3.3V on MISO, we
     ; add an external pullup to its 3.3V pin and put MISO on RC2 in open-drain
-    banksel ODCONC
     bsf ODC2
 
 init_pps:
+    ; RB0: COG1A
     ; RC1: SDI (MOSI)
     ; RC2: SDO (MISO)
     ; RC3: SCK
-    ; RC4: COG1A
     banksel RC2PPS
-    movlw 0b100011  ; SDO
-    movwf RC2PPS
+    ; We currently do not need MISO
+    ; movlw 0b100011  ; SDO
+    ; movwf RC2PPS
     movlw 0b000101  ; COG1A
-    movwf RC4PPS
+    movwf RB0PPS
     
     banksel PPSLOCK
     movlw 0b010001  ; RC1
@@ -158,7 +172,9 @@ init_fade_cog:
     bsf G1RIS9   ; PWM5 for rise
     bsf G1FIS10  ; PWM6 for fall
     bsf G1STRA   ; Steering out on channel A
-    bsf G1ASDAC1 ; High out if shutdown
+    bsf G1POLA   ; Active-low
+    bsf G1ASDAC1 ; Logic out if shutdown
+    bcf G1ASDAC0 ; Low out if shutdown
     bsf G1CS1    ; Clocked by HFINTOSC
     
     ; Blanking is possible: we only care about events after a minimum period
