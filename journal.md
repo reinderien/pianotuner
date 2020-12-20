@@ -508,3 +508,25 @@ Working moving gauge demo end-to-end. Also, the new backlights are in, and have
 a very nice hue and what will certainly be enough brightness. I'm worried about
 how narrow the light cone is, but I'll deal with that with a secondary diffuser
 if I have to.
+
+# December 20, 2020
+
+Wire cleats, power supply, strain relief and power indicator light all mounted.
+
+![Wire cleats](https://raw.githubusercontent.com/reinderien/pianotuner/master/journal-pics/cleats.jpg)
+
+![Mounted power supply](https://raw.githubusercontent.com/reinderien/pianotuner/master/journal-pics/mounted-psu.jpg)
+
+The power indicator looks fine with a little over 1mA from a 2.2k resistor. By
+contrast, the backlights will need to be fairly bright, close to the
+recommended maximum drive current of 30mA through 38 ohms. That resistor had to
+be approximated from a parallel 51 and 150 because it's what I have on hand and
+doesn't merit a new parts order. With this 38 ohms, the current is shared with
+two LEDs in series, which doubles the drive efficiency and allows us to drop
+the drive FET - since 60mA is easily within the 100mA tolerated by the PIC's
+high-drive mode. In addition to high-drive mode, the PIC port can be put in
+open-drain mode (though I found a bug in the Microchip vendor header where some
+registers are misnamed or missing, but there's an easy workaround).
+
+Today we started cutting gauge faceplate plastic out of a recycled salad
+container. Paper will be glued to the front of these.
