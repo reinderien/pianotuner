@@ -18158,7 +18158,7 @@ temperature compensated, 6,2 V</description>
 <part name="JG4L" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X1" device="" package3d_urn="urn:adsk.eagle:package:22485/2"/>
 <part name="JG5H" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X1" device="" package3d_urn="urn:adsk.eagle:package:22485/2"/>
 <part name="JG5L" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X1" device="" package3d_urn="urn:adsk.eagle:package:22485/2"/>
-<part name="RS" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-US_" device="0207/2V" package3d_urn="urn:adsk.eagle:package:23490/1" value="2.2k"/>
+<part name="RS" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-US_" device="0207/2V" package3d_urn="urn:adsk.eagle:package:23490/1" value="1k"/>
 <part name="RP" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-US_" device="0207/5V" package3d_urn="urn:adsk.eagle:package:23502/1" value="1k"/>
 <part name="+3V1" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="+3V3" device=""/>
 <part name="+3V2" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="+3V3" device=""/>
@@ -18176,7 +18176,7 @@ Samtec IDSS-05-S-05.75-T-ST4</text>
 C5xx-Axx amber LEDs ×2×2:
 If ~ 26.3mA, R12, R45
 C5xx-Rxx red LED ×1:
-If ~ 1.3mA, Rs</text>
+If ~ 3.1mA, Rs</text>
 <text x="106.68" y="167.64" size="1.016" layer="97">For layout
 ease, unused</text>
 <frame x1="0" y1="0" x2="196.85" y2="228.6" columns="8" rows="10" layer="97"/>

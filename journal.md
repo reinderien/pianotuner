@@ -509,7 +509,7 @@ a very nice hue and what will certainly be enough brightness. I'm worried about
 how narrow the light cone is, but I'll deal with that with a secondary diffuser
 if I have to.
 
-# December 20, 2020
+# December 19, 2020
 
 Wire cleats, power supply, strain relief and power indicator light all mounted.
 
@@ -530,3 +530,12 @@ registers are misnamed or missing, but there's an easy workaround).
 
 Today we started cutting gauge faceplate plastic out of a recycled salad
 container. Paper will be glued to the front of these.
+
+# December 20, 2020
+
+Soldering almost done, save some LED wires:
+
+![Soldered board](https://raw.githubusercontent.com/reinderien/pianotuner/master/journal-pics/solder.jpg)
+
+I don't like soldering very much, and I'm not great at it, but the board works 
+(at least for the PIC and the power LED fade, so far).
