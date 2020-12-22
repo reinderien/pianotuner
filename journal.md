@@ -539,3 +539,13 @@ Soldering almost done, save some LED wires:
 
 I don't like soldering very much, and I'm not great at it, but the board works 
 (at least for the PIC and the power LED fade, so far).
+
+# December 22, 2020
+
+Most of the gauge art is done in Gimp. I'm working in 600 DPI, and trying to carefully preserve radial accuracy while substituting gauge scale graphics. Only missing is the decibel scale.
+
+![Gauge art](https://raw.githubusercontent.com/reinderien/pianotuner/master/journal-pics/gauges.jpg)
+
+More family help has come in the form of math to accurately identify frequencies:
+
+![Audio math](https://raw.githubusercontent.com/reinderien/pianotuner/master/journal-pics/math.jpg)
