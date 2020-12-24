@@ -21,8 +21,8 @@
 struct CaptureContextTag
 {
     snd_output_t *output;
-	snd_pcm_t *pcm;
-	
+    snd_pcm_t *pcm;
+
     unsigned rate, timeout_ms, timeout_us;
     long unsigned period;
     bool restart;
@@ -131,7 +131,7 @@ static void open_ctl(
         mode
     ));
     
-	check_snd(snd_pcm_info(ctx->pcm, pcm_info));
+    check_snd(snd_pcm_info(ctx->pcm, pcm_info));
 
     char name[16];
     assert(snprintf(
@@ -147,7 +147,7 @@ static void open_ctl(
 
 static void init_pcm(CaptureContext *restrict ctx)
 {
-	snd_pcm_hw_params_t *hwparams;
+    snd_pcm_hw_params_t *hwparams;
     snd_pcm_hw_params_alloca(&hwparams);
     assert(hwparams);
 
@@ -305,21 +305,21 @@ static void describe_set_elems(
     check_snd(snd_ctl_elem_list(ctl, elements));
     assert(n_elements == snd_ctl_elem_list_get_count(elements));
 
-	snd_ctl_elem_id_t *id;
-	snd_ctl_elem_id_alloca(&id);
-	assert(id);
+    snd_ctl_elem_id_t *id;
+    snd_ctl_elem_id_alloca(&id);
+    assert(id);
 
     snd_ctl_elem_info_t *elem;
-	snd_ctl_elem_info_alloca(&elem);
-	assert(elem);
+    snd_ctl_elem_info_alloca(&elem);
+    assert(elem);
 
     snd_ctl_elem_value_t *value;
-	snd_ctl_elem_value_alloca(&value);
-	assert(value);
+    snd_ctl_elem_value_alloca(&value);
+    assert(value);
 
-	bool vol_set = false, agc_set = false;
+    bool vol_set = false, agc_set = false;
 
-	puts(
+    puts(
         "Control elements ---------------------------------------------------\n"
     );
 
@@ -327,17 +327,17 @@ static void describe_set_elems(
     {
         snd_ctl_elem_list_get_id(elements, e, id);
         snd_ctl_elem_info_set_id(elem, id);
-	    check_snd(snd_ctl_elem_info(ctl, elem));
+        check_snd(snd_ctl_elem_info(ctl, elem));
 
-	    snd_ctl_elem_type_t type = snd_ctl_elem_info_get_type(elem);
+        snd_ctl_elem_type_t type = snd_ctl_elem_info_get_type(elem);
 
 #if EXCRUCIATING_DETAIL
-	    const char *item_name;
-	    unsigned items;
-	    if (type == SND_CTL_ELEM_TYPE_ENUMERATED)
-	    {
-	        item_name = snd_ctl_elem_info_get_item_name(elem);
-	        items = snd_ctl_elem_info_get_items(elem);
+        const char *item_name;
+        unsigned items;
+        if (type == SND_CTL_ELEM_TYPE_ENUMERATED)
+        {
+            item_name = snd_ctl_elem_info_get_item_name(elem);
+            items = snd_ctl_elem_info_get_items(elem);
         }
         else
         {
