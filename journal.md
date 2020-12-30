@@ -549,3 +549,21 @@ Most of the gauge art is done in Gimp. I'm working in 600 DPI, and trying to car
 More family help has come in the form of math to accurately identify frequencies:
 
 ![Audio math](https://raw.githubusercontent.com/reinderien/pianotuner/master/journal-pics/math.jpg)
+
+# December 30, 2020
+
+Well, it's been gifted - though it isn't done yet, and I imagine will continue 
+to be a labour of love for some time, particularly in software refinement.
+
+Even more family help arrived in the form of pinning down some
+[pesky circuit issues](https://electronics.stackexchange.com/questions/539329) 
+with a backlight and a gauge. Those seem to have stabilised, so we can finally
+focus on the software in more detail.
+
+![Backlit on the bench](https://raw.githubusercontent.com/reinderien/pianotuner/master/journal-pics/bench.jpg)
+
+As I feared, the light cone is indeed both too sharp and narrow from the LEDs
+compared to what I would have preferred, so if I'm feeling extra ambitious or
+bored and want to de-solder and de-glue the existing LEDs, I would replace them
+with fancy oval ones that have wider viewing angle; or add some diffusion
+material.
