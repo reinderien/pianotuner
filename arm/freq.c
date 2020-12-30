@@ -61,13 +61,13 @@ static void dump_one(
 }
 
 
-#define AC() cblas_sdot(   \
+#define AC() (cblas_sdot(   \
     N - i,     /* len  */  \
     input,     /* x    */  \
     1,         /* incX */  \
     input + i, /* y    */  \
     1          /* incY */  \
-)
+)/(N - i))
 
 
 static int peak_start(
@@ -161,12 +161,11 @@ static float parafit(
 }
 
 
-static bool autocorrelate(
+static void autocorrelate(
     const float *restrict input,
     int N,
     int rate,
-    float *restrict energy,
-    float *restrict freq
+    FreqContext *ctx
 )
 {
 #if DUMP_ONE
@@ -181,12 +180,12 @@ static bool autocorrelate(
     */
     
     int i = 0;
-    *energy = AC();
+    ctx->energy = AC();
 #if DUMP_ONE
     output[0] = 1;
 #endif
 #if METER
-    printf("energy=%8.2g ", *energy);
+    printf("energy=%8.2g ", ctx->energy);
 #endif
 
     /*
@@ -201,7 +200,7 @@ static bool autocorrelate(
     #if DUMP_ONE
         output,
     #endif
-        N, *energy, &amin);
+        N, ctx->energy, &amin);
     if (istart == -1)
     {
     #if METER
@@ -209,7 +208,8 @@ static bool autocorrelate(
             "                                           "
             "                                           ");
     #endif
-        return false;
+        ctx->freq = -1;
+        return;
     }
     
     /*
@@ -221,16 +221,16 @@ static bool autocorrelate(
     #if DUMP_ONE
         output,
     #endif
-        N, *energy, amin, &a2max, &a1max, &a0max, istart, &imax);
+        N, ctx->energy, amin, &a2max, &a1max, &a0max, istart, &imax);
 
     float delta = parafit(a2max, a1max, a0max);
-    *freq = rate / (imax + delta);
+    ctx->freq = rate / (imax + delta);
 
 #if METER
     float pd = a1max - amin;
     printf(
         "amin=%5.2f amax=%5.2f istart=%4d imax=%4d istop=%4d delta=%5.2f pd=%5.2f f=%7.1f ",
-         amin,     a1max,      istart,    imax,    istop,    delta,      pd,     *freq
+         amin,     a1max,      istart,    imax,    istop,    delta,      pd,     ctx->freq
     );
 #endif
 
@@ -239,28 +239,26 @@ static bool autocorrelate(
     dump_one(output, istop, rate);
     free(output);
 #endif
-
-    return freq;
 }
 
 
-void consume(const sample_t *samples, int n_samples, int rate)
+void consume(const sample_t *samples, void *p)
 {
-    float *input = calloc(n_samples, sizeof(float));
+    FreqContext *ctx = p;
+    float *input = calloc(ctx->period, sizeof(float));
     assert(input);
     
-    for (int i = 0; i < n_samples; i++)
+    for (int i = 0; i < ctx->period; i++)
         input[i] = (float)samples[i];
         
 #if METER
-    meter(samples, n_samples);
+    meter(samples, ctx->period);
     
     struct timespec t1, t2;
     assert(!clock_gettime(CLOCK_MONOTONIC_RAW, &t1));
 #endif
 
-    float energy, freq;
-    bool success = autocorrelate(input, n_samples, rate, &energy, &freq);
+    autocorrelate(input, ctx->period, ctx->rate, ctx);
 
 #if METER
     assert(!clock_gettime(CLOCK_MONOTONIC_RAW, &t2));

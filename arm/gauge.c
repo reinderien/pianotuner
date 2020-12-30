@@ -104,16 +104,16 @@ GaugeContext *gauge_init(void)
 
 void gauge_message(
     const GaugeContext *ctx,
-    float v1,
-    float v2,
-    float v4,
-    float v5
+    float db,
+    float octave,
+    float semitone,
+    float deviation
 )
 {
-    uint16_t u1 = v1*CH1_MASK,
-             u2 = v2*CH2_MASK,
-             u5 = v5*CH5_MASK;
-    uint8_t u4 = v4*CH4_MASK;
+    uint16_t u1 = db*CH1_MASK,
+             u2 = octave*CH2_MASK,
+             u5 = deviation*CH5_MASK;
+    uint8_t u4 = semitone*CH4_MASK;
 
     const uint8_t message[] = {
         (1 << INDEX_POS) | (u1 >> 8),
@@ -157,21 +157,21 @@ void gauge_deinit(GaugeContext **ctx)
 
 void gauge_demo(const GaugeContext *ctx)
 {
-    const struct timespec rqtp_1ms = {.tv_sec=0, .tv_nsec = 10000000};
+    const struct timespec sleep_time = {.tv_sec=0, .tv_nsec = 10000000};
 
     float f1=0.1, f2=0.3, f3=0.5, f4=0.7;
     // 0.1/s
-    const float delta = 0.1 / 1e9 * rqtp_1ms.tv_nsec;
+    const float delta = 0.1 * sleep_time.tv_nsec/1e9;
 
     while (true)
     {
         gauge_message(ctx, f1+0.2, f2+0.2, f3+0.2, f4+0.2);
-        nanosleep(&rqtp_1ms, NULL);
+        nanosleep(&sleep_time, NULL);
 
-        f1 = fmod(f1, 0.7)+delta;
-        f2 = fmod(f2, 0.7)+delta;
-        f3 = fmod(f3, 0.7)+delta;
-        f4 = fmod(f4, 0.7)+delta;
+        f1 = fmodf(f1, 0.7)+delta;
+        f2 = fmodf(f2, 0.7)+delta;
+        f3 = fmodf(f3, 0.7)+delta;
+        f4 = fmodf(f4, 0.7)+delta;
     }
 }
 

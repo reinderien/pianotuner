@@ -6,7 +6,7 @@
 
 export
 
-objs = main.o capture.o freq.o gauge.o
+objs = main.o capture.o freq.o gauge.o util.o vrb.o
 
 pkg = pkg-config --cflags alsa
 
@@ -32,6 +32,9 @@ $(info ldflags=${ldflags})
 all: pianotuner
 
 pianotuner: $(objs)
+	gcc $$cflags $$ldflags -o $@ $^
+
+vrb_test: vrb_test.o vrb.o
 	gcc $$cflags $$ldflags -o $@ $^
 
 %.o: %.c makefile

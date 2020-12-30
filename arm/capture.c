@@ -7,10 +7,12 @@
 #include <asoundlib.h>
 
 #include "capture.h"
-#include "freq.h"
 
 
 #define EXCRUCIATING_DETAIL 0
+#define LATENCY 10e-3f
+// It would just be stupid to run with a period any lower than this.
+#define MIN_PERIOD 16u
 
 #define AGC false
 
@@ -23,8 +25,7 @@ struct CaptureContextTag
     snd_output_t *output;
     snd_pcm_t *pcm;
 
-    unsigned rate, timeout_ms, timeout_us;
-    long unsigned period;
+    unsigned rate, timeout_ms, timeout_us, period;
     bool restart;
     snd_pcm_state_t prev_state;
 };
@@ -176,13 +177,8 @@ static void init_pcm(CaptureContext *restrict ctx)
         ctx->pcm, hwparams, false
     ));
 
-    // Set minimum rate based on Nyquist frequency of max note
     int direction = 0;
-    ctx->rate = 2*FMIN;
-    check_snd(snd_pcm_hw_params_set_rate_min(
-        ctx->pcm, hwparams, &ctx->rate, &direction
-    ));
-    check_snd(snd_pcm_hw_params_set_rate_first(
+    check_snd(snd_pcm_hw_params_set_rate_last(
         ctx->pcm, hwparams, &ctx->rate, &direction
     ));
     if (direction != 0)
@@ -196,16 +192,25 @@ static void init_pcm(CaptureContext *restrict ctx)
         exit(-1);
     }
 
-    const float min_period = ctx->rate / FMIN;
-    for (ctx->period = 1; ctx->period < min_period; ctx->period <<= 1);
+    unsigned desired_period = MIN_PERIOD;
+    unsigned max_period = (unsigned)((float)ctx->rate * LATENCY);
+    while (true)
+    {
+        unsigned next = desired_period << 1;
+        if (next > max_period)
+            break;
+        desired_period = next;
+    }
 
     // For some reason this has become more restrictive when moving from legacy
     // 32-bit Raspbian to 64-bit Raspberry Pi OS; now the only accepted value is
     // 1024.
     direction = 0;
+    unsigned long actual_period = desired_period;
     check_snd(snd_pcm_hw_params_set_period_size_near(
-        ctx->pcm, hwparams, &ctx->period, &direction
+        ctx->pcm, hwparams, &actual_period, &direction
     ));
+    ctx->period = actual_period;
 
     check_snd(snd_pcm_hw_params_set_buffer_size(
         ctx->pcm, hwparams, 2*ctx->period
@@ -530,20 +535,6 @@ static void describe_params(const CaptureContext *restrict ctx)
     puts(
         "Parameters ---------------------------------------------------------");
     check_snd(snd_pcm_dump(ctx->pcm, ctx->output));
-
-    printf(
-        "\n"
-        "Constraints --------------------------------------------------------\n"
-        "  period : %lu > %d (may fail in recent builds of Rpi)\n"
-        "  rate   : %u > %d\n"
-        "  fmin   : %.1f < %.1f\n"
-        "  fmax   : %d > %d\n"
-        "\n",
-        ctx->period, (int)(ctx->rate / FMIN),
-        ctx->rate, (int)(2*FMAX),
-        ctx->rate / (float)ctx->period, FMIN,
-        ctx->rate/2, (int)FMAX
-    );
 }
 
 
@@ -760,13 +751,13 @@ static snd_pcm_sframes_t capture_wait(CaptureContext *restrict ctx)
 }
 
 
-void capture_period(
+void capture_capture_period(
     CaptureContext *ctx,
     void (*consume)(
         const sample_t *samples,
-        int n_samples,
-        int rate
-    )
+        void *p
+    ),
+    void *p
 ) {
     snd_pcm_sframes_t avail;
     do
@@ -797,13 +788,13 @@ void capture_period(
             + (areas->first / 8)
         ) + offset;
 
-        consume(samples, ctx->period, ctx->rate);
+        consume(samples, p);
     }
     else
     {
         fprintf(
             stderr,
-            "Short read %ld < %lu\n",
+            "Short read %ld < %u\n",
             frames,
             ctx->period
         );
@@ -816,3 +807,11 @@ void capture_period(
     warn_snd(transferred);
 }
 
+unsigned capture_period(CaptureContext *c)
+{
+    return c->period;
+}
+unsigned capture_rate(CaptureContext *c)
+{
+    return c->rate;
+}
