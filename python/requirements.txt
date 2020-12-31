@@ -1,0 +1,11 @@
+# The following are needed to build pyFFTW
+Cython
+pip
+setuptools
+wheel
+
+matplotlib
+numpy
+PyAudio
+pyFFTW
+scipy
