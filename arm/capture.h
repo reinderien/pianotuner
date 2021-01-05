@@ -14,7 +14,8 @@ void capture_deinit(CaptureContext**);
 void capture_capture_period(
     CaptureContext *ctx,
     void (*consume)(
-        const sample_t *samples,
+        CaptureContext *cc,
+        const sample_t *restrict samples,
         void *p
     ),
     void *p

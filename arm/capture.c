@@ -754,7 +754,8 @@ static snd_pcm_sframes_t capture_wait(CaptureContext *restrict ctx)
 void capture_capture_period(
     CaptureContext *ctx,
     void (*consume)(
-        const sample_t *samples,
+        CaptureContext *ctx,
+        const sample_t *restrict samples,
         void *p
     ),
     void *p
@@ -766,7 +767,7 @@ void capture_capture_period(
 
     const snd_pcm_channel_area_t *areas;
     snd_pcm_uframes_t offset, frames = ctx->period;
-    int err = (snd_pcm_mmap_begin(ctx->pcm, &areas, &offset, &frames));
+    int err = snd_pcm_mmap_begin(ctx->pcm, &areas, &offset, &frames);
     if (err < 0)
     {
         warn_snd(err);
@@ -788,7 +789,7 @@ void capture_capture_period(
             + (areas->first / 8)
         ) + offset;
 
-        consume(samples, p);
+        consume(ctx, samples, p);
     }
     else
     {

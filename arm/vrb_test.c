@@ -7,12 +7,11 @@ typedef int64_t i64;
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
-// determines the length  of a static array.
-#define SALEN(sa) (sizeof(sa)/sizeof(*sa))
 
 #include <time.h>
 #include <unistd.h>
 
+#include "util.h"
 #include "vrb.h"
 
 int main(int argc, const char **argv)
