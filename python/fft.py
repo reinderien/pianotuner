@@ -12,6 +12,10 @@ import audio
 import params
 from params import f_to_fft, fft_to_f, f_to_n, LOG_2
 
+
+YMAX = 50
+
+
 AxisPair = Tuple[
     np.ndarray,  # freq (horizontal) axis
     np.ndarray,  # power (vertical) axis
@@ -30,7 +34,6 @@ def init_fft(read_audio: audio.ReadFn) -> SpectrumFn:
     n_cpus = cpu_count()
     types = ('double', 'float', 'ldouble')
     wisdom_fns = [Path(f'.fftw_wisdom_{t}') for t in types]
-    flags = ('FFTW_MEASURE',)
     has_wisdom = False
 
     if all(p.exists() for p in wisdom_fns):
@@ -42,19 +45,32 @@ def init_fft(read_audio: audio.ReadFn) -> SpectrumFn:
                 print(f'Invalid wisdom in {path}')
                 break
         else:
-            flags += ('FFTW_WISDOM_ONLY',)
             has_wisdom = True
 
-    if not has_wisdom:
-        print(f'Planning FFT wisdom on {n_cpus} cpus...', end=' ')
+    def make_fft():
+        flags = {'FFTW_MEASURE'}
 
-    fft = pyfftw.FFTW(
-        fft_in, fft_out,
-        direction='FFTW_FORWARD',
-        flags=flags,
-        threads=n_cpus,
-        planning_timelimit=60,
-    )
+        if not has_wisdom:
+            print(f'Planning FFT wisdom on {n_cpus} cpus...', end=' ')
+            flags.add('FFTW_WISDOM_ONLY')
+
+        return pyfftw.FFTW(
+            fft_in, fft_out,
+            direction='FFTW_FORWARD',
+            flags=flags,
+            threads=n_cpus,
+            planning_timelimit=60,
+        )
+    try:
+        fft = make_fft()
+    except RuntimeError as e:
+        if 'No FFTW wisdom is known for this plan' in e.args[0]:
+            print(str(e))
+            has_wisdom = False
+            fft = make_fft()
+        else:
+            raise
+
     wisdoms = pyfftw.export_wisdom()
     for wisdom, path in zip(wisdoms, wisdom_fns):
         path.write_bytes(wisdom)
@@ -95,7 +111,10 @@ def make_spectrum_fn(
 
             fft()
 
-        fund = fft_out[i_left: i_right+1]
-        return cents, np.abs(fund)
+        fund = np.abs(fft_out[i_left: i_right+1])
+        yfmax = np.max(fund)
+        if yfmax > YMAX:
+            fund *= YMAX/yfmax
+        return cents, fund
 
     return fn

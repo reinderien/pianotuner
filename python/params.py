@@ -22,7 +22,7 @@ n_notes = 88         # semitones
 f_a0 = f_min = 22.5  # cycles/sec
 f_samp = 48_000      # samples/sec
 t_window_min = 1     # seconds
-framerate_min = 30  # frames/sec
+framerate_min = 30   # frames/sec
 
 f_upper = f_samp/2   # cycles/sec
 samp_min = t_window_min*f_samp  # samples/cycle
@@ -31,9 +31,9 @@ t_window = n_window_samples / f_samp   # secs/cycle
 f_lower = 1/t_window                   # cycles/sec
 n_fft_in = n_window_samples            # samples
 n_fft_out = n_window_samples // 2 + 1  # samples
-frame_samples_max = f_samp / framerate_min  # samples/frame
-n_frame_samples = prev_pow_2(frame_samples_max)
-framerate = f_samp / n_frame_samples
+frame_samples_max = f_samp / framerate_min       # samples/frame
+n_frame_samples = prev_pow_2(frame_samples_max)  # samples/frame
+framerate = f_samp / n_frame_samples   # frames/sec
 
 
 def n_to_f(note: int) -> float:

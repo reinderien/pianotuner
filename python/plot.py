@@ -13,7 +13,7 @@ from matplotlib.scale import ScaleBase, register_scale
 from matplotlib.transforms import Transform
 
 import params
-from fft import SpectrumFn
+from fft import SpectrumFn, YMAX
 
 
 class TuneScale(ScaleBase):
@@ -85,7 +85,7 @@ def init_plot(get_spectrum: SpectrumFn) -> Tuple[
     Callable[[], None],  # plot loop
     FuncAnimation,
 ]:
-    ticks = [10, 25, 50, 100, 250, 600]
+    ticks = [10, 25, 50, 100, 200, 600]
     ticks = [
         *(-x for x in ticks[::-1]),
         0, *ticks,
@@ -98,7 +98,7 @@ def init_plot(get_spectrum: SpectrumFn) -> Tuple[
     ax.set_title('Harmonic spectrogram')
 
     ax.set_ylabel('Spectral power')
-    ax.set_ylim(0, 500)
+    ax.set_ylim(0, YMAX)
 
     ax.set_xlabel('Deviation, cents')
     ax.set_xlim(-600, 600)
