@@ -10,6 +10,7 @@ from pyfftw.pyfftw import FFTW
 
 import audio
 import params
+from params import f_to_fft, fft_to_f, f_to_n, LOG_2
 
 AxisPair = Tuple[
     np.ndarray,  # freq (horizontal) axis
@@ -74,7 +75,12 @@ def make_spectrum_fn(
     fft_out: np.ndarray,
     read_audio: audio.ReadFn,
 ) -> SpectrumFn:
-    f_axis = np.linspace(0, params.f_upper, params.n_fft_out)
+    f_tune_exact = 440
+    f_left, f_right = f_tune_exact/np.sqrt(2), f_tune_exact*np.sqrt(2)
+    i_left, i_right = f_to_fft(f_left), f_to_fft(f_right)
+    fft_indices = np.arange(i_left, i_right + 1)
+    freqs = fft_to_f(fft_indices)
+    cents = 1_200 * np.log(freqs / f_tune_exact) / LOG_2
 
     def fn() -> AxisPair:
         # Read up to n_fft_in samples; usually it will be much smaller
@@ -89,6 +95,7 @@ def make_spectrum_fn(
 
             fft()
 
-        return f_axis, np.real(fft_out)
+        fund = fft_out[i_left: i_right+1]
+        return cents, np.abs(fund)
 
     return fn

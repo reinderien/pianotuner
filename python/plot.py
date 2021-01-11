@@ -98,12 +98,12 @@ def init_plot(get_spectrum: SpectrumFn) -> Tuple[
     ax.set_title('Harmonic spectrogram')
 
     ax.set_ylabel('Spectral power')
-    ax.set_ylim(-2000, 2000)
+    ax.set_ylim(0, 500)
 
     ax.set_xlabel('Deviation, cents')
-    ax.set_xlim(0, params.f_upper)
-    # ax.set_xscale('tune-scale')
-    # ax.set_xticks(ticks, minor=False)
+    ax.set_xlim(-600, 600)
+    ax.set_xscale('tune-scale')
+    ax.set_xticks(ticks, minor=False)
     ax.tick_params(axis='x', which='both', labelrotation=45)
 
     ax.grid()

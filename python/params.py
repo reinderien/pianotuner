@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import math
+import numpy as np
 
 
 # https://en.wikipedia.org/wiki/Piano#/media/File:Piano_Frequencies.svg
@@ -10,11 +11,11 @@ LOG_2 = math.log(2)
 
 
 def prev_pow_2(x: float) -> int:
-    return 2 ** int(math.log(x) / LOG_2)
+    return 2 ** int(np.log(x) / LOG_2)
 
 
 def next_pow_2(x: float) -> int:
-    return 2 ** int(math.ceil(math.log(x) / LOG_2))
+    return 2 ** int(np.ceil(np.log(x) / LOG_2))
 
 
 n_notes = 88         # semitones
@@ -36,16 +37,24 @@ framerate = f_samp / n_frame_samples
 
 
 def n_to_f(note: int) -> float:
-    return f_a0 * 2**(note/12)
+    return f_a0 * np.power(2, note/12)
 
 
 def f_to_n(freq: float) -> float:
-    return 12 * math.log(freq/f_a0) / LOG_2
+    return 12 * np.log(freq/f_a0) / LOG_2
 
 
 def n_to_name(n: float) -> str:
-    n = int(math.floor(n + 0.5))
+    n = int(round(n))
     return NAMES[n % 12] + str(int(n / 12))
+
+
+def f_to_fft(f: float) -> int:
+    return round(f / f_upper * n_fft_out)
+
+
+def fft_to_f(i: int) -> float:
+    return i / n_fft_out * f_upper
 
 
 f_max = n_to_f(n_notes - 1)    # cycles/sec
