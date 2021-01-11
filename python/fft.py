@@ -92,7 +92,6 @@ class FFT:
         print(f'{n_codelets} codelets in {end - start:.1f}s')
 
     def set_note(self, note: int):
-        # todo - variable.
         f_tune_exact = n_to_f(note)
 
         # This can't really be vectorized because these will be jagged.

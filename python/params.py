@@ -23,7 +23,7 @@ def next_pow_2(x: float) -> int:
 
 n_notes = 88         # semitones
 n_a440 = 12*4        # semitones
-f_a0 = f_min = 22.5  # cycles/sec
+f_a0 = f_min = 27.5  # cycles/sec
 f_samp = 48_000      # samples/sec
 t_window_min = 1     # seconds
 framerate_min = 30   # frames/sec
@@ -51,7 +51,9 @@ def f_to_n(freq: float) -> float:
 
 
 def n_to_name(n: float) -> str:
-    n = int(round(n))
+    # In application note space, A0 maps to index 0, but in musical note space
+    # C is at 0
+    n = int(round(n)) + 9
     return NAMES[n % 12] + str(int(n / 12))
 
 

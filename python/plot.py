@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from math import sqrt
-from typing import Iterable, Callable, Tuple, Sequence, Dict
+from typing import Callable, Dict, Iterable, List
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -15,6 +15,7 @@ from matplotlib.transforms import Transform
 
 import params
 from fft import SpectrumFn
+from params import n_to_name
 
 
 ChangeNoteFn = Callable[[int], None]
@@ -94,7 +95,7 @@ class Plot:
     ):
         self.get_spectrum = get_spectrum
         self.change_note = change_note
-        self.run = plt.show
+        self.run: Callable[[], None] = plt.show
 
         ticks = [10, 25, 50, 100, 200, 600]
         ticks = [
@@ -104,14 +105,14 @@ class Plot:
 
         fig: Figure
         ax: Axes
-        fig, ax = plt.subplots()
+        self.fig, ax = plt.subplots()
+        self.ax = ax
 
-        self.plots = [
+        self.plots: List[Line2D] = [
             ax.plot([], [], label=str(harm))[0]
             for harm in range(1, params.n_harmonics + 1)
         ]
 
-        ax.set_title('Harmonic spectrogram')
         ax.grid()
         ax.legend(title='Harmonic')
 
@@ -124,15 +125,15 @@ class Plot:
         ax.set_ylabel('Spectral power')
         ax.set_ylim(0, params.y_max)
 
-        fig.canvas.mpl_connect('key_press_event', self.on_key)
+        self.fig.canvas.mpl_connect('key_press_event', self.on_key)
 
         self.animation = FuncAnimation(
-            fig, self.animate,
+            self.fig, self.animate,
             interval=1_000 // params.framerate,
             blit=True,
         )
 
-    def animate(self, *args) -> Iterable[Artist]:
+    def animate(self, frame: int) -> Iterable[Artist]:
         freqs, powers = self.get_spectrum()
 
         for freq_axis, power_data, plot in zip(freqs, powers, self.plots):
@@ -146,4 +147,6 @@ class Plot:
             self.change_note(delta)
 
     def set_note(self, note: int):
-        pass
+        name = n_to_name(note)
+        self.ax.set_title(f'Harmonic spectrum at {name}')
+        self.fig.canvas.draw()
