@@ -1,4 +1,4 @@
-from typing import Callable, Tuple
+from typing import Callable, Tuple, List
 
 import numpy as np
 import pyfftw
@@ -10,15 +10,16 @@ from pyfftw.pyfftw import FFTW
 
 import audio
 import params
-from params import f_to_fft, fft_to_f, f_to_n, LOG_2
+from params import f_to_fft, fft_to_f, LOG_2
 
 
+N_HARMS = 5
 YMAX = 50
 
 
 AxisPair = Tuple[
-    np.ndarray,  # freq (horizontal) axis
-    np.ndarray,  # power (vertical) axis
+    List[np.ndarray],  # freq (horizontal) axes
+    List[np.ndarray],  # power (vertical) axes
 ]
 SpectrumFn = Callable[[], AxisPair]
 
@@ -85,18 +86,36 @@ def init_fft(read_audio: audio.ReadFn) -> SpectrumFn:
     return make_spectrum_fn(fft, fft_in, fft_out, read_audio)
 
 
+def make_axes() -> Tuple[
+    List[np.ndarray],       # List of cent axes for each harmonic
+    List[Tuple[int, int]],  # Boundary indices for each harmonic
+]:
+    # todo - variable.
+    f_tune_exact = 440
+    SQ2 = np.sqrt(2)
+
+    # This can't really be vectorized because these will be jagged.
+    cents = []
+    bounds = []
+    for h in range(1, N_HARMS + 1):
+        f_left, f_right = h * f_tune_exact/SQ2, h * f_tune_exact*SQ2
+        i_left, i_right = f_to_fft(f_left), f_to_fft(f_right)
+        bounds.append((i_left, i_right))
+
+        fft_indices = np.arange(i_left, i_right + 1)
+        freqs = fft_to_f(fft_indices)
+        cents.append(1_200 * np.log(freqs / f_tune_exact/h) / LOG_2)
+
+    return cents, bounds
+
+
 def make_spectrum_fn(
     fft: FFTW,
     fft_in: np.ndarray,
     fft_out: np.ndarray,
     read_audio: audio.ReadFn,
 ) -> SpectrumFn:
-    f_tune_exact = 440
-    f_left, f_right = f_tune_exact/np.sqrt(2), f_tune_exact*np.sqrt(2)
-    i_left, i_right = f_to_fft(f_left), f_to_fft(f_right)
-    fft_indices = np.arange(i_left, i_right + 1)
-    freqs = fft_to_f(fft_indices)
-    cents = 1_200 * np.log(freqs / f_tune_exact) / LOG_2
+    cents, bounds = make_axes()
 
     def fn() -> AxisPair:
         # Read up to n_fft_in samples; usually it will be much smaller
@@ -108,13 +127,16 @@ def make_spectrum_fn(
             fft_in[:-n] = fft_in[n:]
             # Copy new data into the end of the array
             fft_in[-n:] = samples
-
             fft()
 
-        fund = np.abs(fft_out[i_left: i_right+1])
-        yfmax = np.max(fund)
-        if yfmax > YMAX:
-            fund *= YMAX/yfmax
-        return cents, fund
+        harms = []
+        for left, right in bounds:
+            harm = np.abs(fft_out[left: right+1])
+            yfmax = np.max(harm)
+            if yfmax > YMAX:
+                harm *= YMAX/yfmax
+            harms.append(harm)
+
+        return cents, harms
 
     return fn

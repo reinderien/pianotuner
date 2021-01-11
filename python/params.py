@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import math
+from typing import Union
+
 import numpy as np
 
 
@@ -53,7 +55,7 @@ def f_to_fft(f: float) -> int:
     return round(f / f_upper * n_fft_out)
 
 
-def fft_to_f(i: int) -> float:
+def fft_to_f(i: Union[int, np.ndarray]) -> float:
     return i / n_fft_out * f_upper
 
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from math import sqrt
-from typing import Iterable, Callable, Tuple
+from typing import Iterable, Callable, Tuple, Sequence
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -13,7 +13,7 @@ from matplotlib.scale import ScaleBase, register_scale
 from matplotlib.transforms import Transform
 
 import params
-from fft import SpectrumFn, YMAX
+from fft import SpectrumFn, YMAX, N_HARMS
 
 
 class TuneScale(ScaleBase):
@@ -75,10 +75,17 @@ class TuneScale(ScaleBase):
 register_scale(TuneScale)
 
 
-def animate(frame: int, plot: Line2D, get_spectrum: SpectrumFn) -> Iterable[Artist]:
+def animate(
+    frame: int,
+    plots: Sequence[Line2D],
+    get_spectrum: SpectrumFn,
+) -> Iterable[Artist]:
     freqs, powers = get_spectrum()
-    plot.set_data(freqs, powers)
-    return plot,
+
+    for freq_axis, power_data, plot in zip(freqs, powers, plots):
+        plot.set_data(freq_axis, power_data)
+
+    return plots
 
 
 def init_plot(get_spectrum: SpectrumFn) -> Tuple[
@@ -95,10 +102,14 @@ def init_plot(get_spectrum: SpectrumFn) -> Tuple[
     ax: Axes
     fig, ax = plt.subplots()
 
-    ax.set_title('Harmonic spectrogram')
+    plots = [
+        ax.plot([], [], label=str(harm))[0]
+        for harm in range(1, N_HARMS + 1)
+    ]
 
-    ax.set_ylabel('Spectral power')
-    ax.set_ylim(0, YMAX)
+    ax.set_title('Harmonic spectrogram')
+    ax.grid()
+    ax.legend(title='Harmonic')
 
     ax.set_xlabel('Deviation, cents')
     ax.set_xlim(-600, 600)
@@ -106,13 +117,12 @@ def init_plot(get_spectrum: SpectrumFn) -> Tuple[
     ax.set_xticks(ticks, minor=False)
     ax.tick_params(axis='x', which='both', labelrotation=45)
 
-    ax.grid()
-
-    plot, = ax.plot([], [], )
+    ax.set_ylabel('Spectral power')
+    ax.set_ylim(0, YMAX)
 
     animation = FuncAnimation(
         fig, animate,
-        fargs=(plot, get_spectrum),
+        fargs=(plots, get_spectrum),
         interval=1_000 // params.framerate,
         blit=True,
     )
