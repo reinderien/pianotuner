@@ -57,9 +57,10 @@ class FFT:
         def make_fft() -> FFTW:
             flags = {'FFTW_MEASURE'}
 
-            if not has_wisdom:
-                print(f'Planning FFT wisdom on {n_cpus} cpus...', end=' ')
+            if has_wisdom:
                 flags.add('FFTW_WISDOM_ONLY')
+            else:
+                print(f'Planning FFT wisdom on {n_cpus} cpus...', end=' ')
 
             return pyfftw.FFTW(
                 self.fft_in, self.fft_out,

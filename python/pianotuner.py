@@ -20,6 +20,7 @@ def main():
     with init_audio() as read_audio:
         fft = FFT(read_audio)
         plot = Plot(fft.get_spectrum, change_note)
+        change_note(0)
         plot.run()
 
 
