@@ -7,9 +7,10 @@ import numpy as np
 
 
 # https://en.wikipedia.org/wiki/Piano#/media/File:Piano_Frequencies.svg
-NAMES = ('C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B')
+NAMES = ('C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B')
 
 LOG_2 = math.log(2)
+SQ2 = math.sqrt(2)
 
 
 def prev_pow_2(x: float) -> int:
@@ -21,10 +22,13 @@ def next_pow_2(x: float) -> int:
 
 
 n_notes = 88         # semitones
+n_a440 = 12*4        # semitones
 f_a0 = f_min = 22.5  # cycles/sec
 f_samp = 48_000      # samples/sec
 t_window_min = 1     # seconds
 framerate_min = 30   # frames/sec
+n_harmonics = 5      # octaves
+y_max = 50           # post-FFT audio y-units
 
 f_upper = f_samp/2   # cycles/sec
 samp_min = t_window_min*f_samp  # samples/cycle

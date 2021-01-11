@@ -1,18 +1,26 @@
 #!/usr/bin/env python3
 
 from audio import init_audio
-from fft import init_fft
-from plot import init_plot
+from fft import FFT
+from plot import Plot
 import params
 
 
 def main():
     params.dump()
 
+    note = params.n_a440
+
+    def change_note(delta: int):
+        nonlocal note
+        note += delta
+        fft.set_note(note)
+        plot.set_note(note)
+
     with init_audio() as read_audio:
-        get_spectrum = init_fft(read_audio)
-        plot_loop, animation = init_plot(get_spectrum)
-        plot_loop()
+        fft = FFT(read_audio)
+        plot = Plot(fft.get_spectrum, change_note)
+        plot.run()
 
 
 if __name__ == '__main__':

@@ -1,19 +1,30 @@
 #!/usr/bin/env python3
 from math import sqrt
-from typing import Iterable, Callable, Tuple, Sequence
+from typing import Iterable, Callable, Tuple, Sequence, Dict
 
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.animation import FuncAnimation
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes
+from matplotlib.backend_bases import KeyEvent
 from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
 from matplotlib.scale import ScaleBase, register_scale
 from matplotlib.transforms import Transform
 
 import params
-from fft import SpectrumFn, YMAX, N_HARMS
+from fft import SpectrumFn
+
+
+ChangeNoteFn = Callable[[int], None]
+
+KEYS: Dict[str, int] = {
+    'left': -1,
+    'right': 1,
+    'down': -12,
+    'up': 12,
+}
 
 
 class TuneScale(ScaleBase):
@@ -75,56 +86,64 @@ class TuneScale(ScaleBase):
 register_scale(TuneScale)
 
 
-def animate(
-    frame: int,
-    plots: Sequence[Line2D],
-    get_spectrum: SpectrumFn,
-) -> Iterable[Artist]:
-    freqs, powers = get_spectrum()
+class Plot:
+    def __init__(
+        self,
+        get_spectrum: SpectrumFn,
+        change_note: ChangeNoteFn,
+    ):
+        self.get_spectrum = get_spectrum
+        self.change_note = change_note
+        self.run = plt.show
 
-    for freq_axis, power_data, plot in zip(freqs, powers, plots):
-        plot.set_data(freq_axis, power_data)
+        ticks = [10, 25, 50, 100, 200, 600]
+        ticks = [
+            *(-x for x in ticks[::-1]),
+            0, *ticks,
+        ]
 
-    return plots
+        fig: Figure
+        ax: Axes
+        fig, ax = plt.subplots()
 
+        self.plots = [
+            ax.plot([], [], label=str(harm))[0]
+            for harm in range(1, params.n_harmonics + 1)
+        ]
 
-def init_plot(get_spectrum: SpectrumFn) -> Tuple[
-    Callable[[], None],  # plot loop
-    FuncAnimation,
-]:
-    ticks = [10, 25, 50, 100, 200, 600]
-    ticks = [
-        *(-x for x in ticks[::-1]),
-        0, *ticks,
-    ]
+        ax.set_title('Harmonic spectrogram')
+        ax.grid()
+        ax.legend(title='Harmonic')
 
-    fig: Figure
-    ax: Axes
-    fig, ax = plt.subplots()
+        ax.set_xlabel('Deviation, cents')
+        ax.set_xlim(-600, 600)
+        ax.set_xscale('tune-scale')
+        ax.set_xticks(ticks, minor=False)
+        ax.tick_params(axis='x', which='both', labelrotation=45)
 
-    plots = [
-        ax.plot([], [], label=str(harm))[0]
-        for harm in range(1, N_HARMS + 1)
-    ]
+        ax.set_ylabel('Spectral power')
+        ax.set_ylim(0, params.y_max)
 
-    ax.set_title('Harmonic spectrogram')
-    ax.grid()
-    ax.legend(title='Harmonic')
+        fig.canvas.mpl_connect('key_press_event', self.on_key)
 
-    ax.set_xlabel('Deviation, cents')
-    ax.set_xlim(-600, 600)
-    ax.set_xscale('tune-scale')
-    ax.set_xticks(ticks, minor=False)
-    ax.tick_params(axis='x', which='both', labelrotation=45)
+        self.animation = FuncAnimation(
+            fig, self.animate,
+            interval=1_000 // params.framerate,
+            blit=True,
+        )
 
-    ax.set_ylabel('Spectral power')
-    ax.set_ylim(0, YMAX)
+    def animate(self, *args) -> Iterable[Artist]:
+        freqs, powers = self.get_spectrum()
 
-    animation = FuncAnimation(
-        fig, animate,
-        fargs=(plots, get_spectrum),
-        interval=1_000 // params.framerate,
-        blit=True,
-    )
+        for freq_axis, power_data, plot in zip(freqs, powers, self.plots):
+            plot.set_data(freq_axis, power_data)
 
-    return plt.show, animation
+        return self.plots
+
+    def on_key(self, event: KeyEvent):
+        delta = KEYS.get(event.key)
+        if delta is not None:
+            self.change_note(delta)
+
+    def set_note(self, note: int):
+        pass
