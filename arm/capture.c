@@ -11,8 +11,6 @@
 
 #define EXCRUCIATING_DETAIL 0
 #define LATENCY 10e-3f
-// It would just be stupid to run with a period any lower than this.
-#define MIN_PERIOD 16u
 
 #define AGC false
 
@@ -192,7 +190,7 @@ static void init_pcm(CaptureContext *restrict ctx)
         exit(-1);
     }
 
-    unsigned desired_period = MIN_PERIOD;
+    unsigned desired_period = 1;
     unsigned max_period = (unsigned)((float)ctx->rate * LATENCY);
     while (true)
     {
@@ -751,7 +749,7 @@ static snd_pcm_sframes_t capture_wait(CaptureContext *restrict ctx)
 }
 
 
-void capture_capture_period(
+void capture_do_capture(
     CaptureContext *ctx,
     void (*consume)(
         CaptureContext *ctx,

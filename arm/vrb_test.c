@@ -1,8 +1,4 @@
 #include <inttypes.h>
-typedef uint32_t u32;
-typedef uint64_t u64;
-typedef int32_t i32;
-typedef int64_t i64;
 #include <stdbool.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -52,21 +48,21 @@ int main(int argc, const char **argv)
     // Test present writing and past reading.
     {
         VRB *b = vrb_create(2*PS);
-        unsigned N = b->length / sizeof(u32);
+        unsigned N = b->length / sizeof(uint32_t);
         unsigned C[] = {91, N - 45, N - 1, N, N/2, N/2 - 1};
         for (unsigned i = 0; i < SALEN(C); i++)
         {
-            u32 Y = random();
+            uint32_t Y = random();
 
-            for (u32 x = 0; x < C[i]; x++)
+            for (uint32_t x = 0; x < C[i]; x++)
             {
-                u32 *p = b->present;
+                uint32_t *p = b->present;
                 p[x] = Y + x;
             }
-            vrb_advance(b, C[i]*sizeof(u32));
+            vrb_advance(b, C[i]*sizeof(uint32_t));
 
-            u32 *p = vrb_past(b, C[i]*sizeof(u32));
-            for (u32 x = 0; x < C[i]; x++)
+            uint32_t *p = vrb_past(b, C[i]*sizeof(uint32_t));
+            for (uint32_t x = 0; x < C[i]; x++)
                 assert(p[x] == Y + x);
         }
         vrb_destroy(b);

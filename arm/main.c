@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <cblas.h>
+#include <string.h>
 
 #include "util.h"
 #include "capture.h"
@@ -51,7 +52,7 @@ static void consume(CaptureContext *cc, const sample_t *restrict samples, void *
 // Returns the power of the last capture, which will always be needed.
 static float read_audio(CaptureContext *cc, VRB *b)
 {
-    capture_capture_period(cc, consume, b);
+    capture_do_capture(cc, consume, b);
 
     unsigned N = capture_period(cc);
     float *last_cap = vrb_past(b, N*sizeof(float));

@@ -1,6 +1,6 @@
 #include <stdlib.h>
 
-// determines the length  of a static array.
+// determines the length of a static array.
 #define SALEN(sa) (sizeof(sa)/sizeof(*sa))
 
 float mod1rd(float x);
