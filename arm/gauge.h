@@ -12,10 +12,10 @@ void gauge_deinit(GaugeContext**);
 
 void gauge_message(
     const GaugeContext *ctx,
-    float v1,
-    float v2,
-    float v4,
-    float v5
+    float db,
+    float octave,
+    float semitone,
+    float deviation
 );
 
 void gauge_demo(const GaugeContext *ctx);

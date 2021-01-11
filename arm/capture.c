@@ -7,10 +7,10 @@
 #include <asoundlib.h>
 
 #include "capture.h"
-#include "freq.h"
 
 
 #define EXCRUCIATING_DETAIL 0
+#define LATENCY 10e-3f
 
 #define AGC false
 
@@ -21,10 +21,9 @@
 struct CaptureContextTag
 {
     snd_output_t *output;
-	snd_pcm_t *pcm;
-	
-    unsigned rate, timeout_ms, timeout_us;
-    long unsigned period;
+    snd_pcm_t *pcm;
+
+    unsigned rate, timeout_ms, timeout_us, period;
     bool restart;
     snd_pcm_state_t prev_state;
 };
@@ -131,7 +130,7 @@ static void open_ctl(
         mode
     ));
     
-	check_snd(snd_pcm_info(ctx->pcm, pcm_info));
+    check_snd(snd_pcm_info(ctx->pcm, pcm_info));
 
     char name[16];
     assert(snprintf(
@@ -147,7 +146,7 @@ static void open_ctl(
 
 static void init_pcm(CaptureContext *restrict ctx)
 {
-	snd_pcm_hw_params_t *hwparams;
+    snd_pcm_hw_params_t *hwparams;
     snd_pcm_hw_params_alloca(&hwparams);
     assert(hwparams);
 
@@ -176,13 +175,8 @@ static void init_pcm(CaptureContext *restrict ctx)
         ctx->pcm, hwparams, false
     ));
 
-    // Set minimum rate based on Nyquist frequency of max note
     int direction = 0;
-    ctx->rate = 2*FMIN;
-    check_snd(snd_pcm_hw_params_set_rate_min(
-        ctx->pcm, hwparams, &ctx->rate, &direction
-    ));
-    check_snd(snd_pcm_hw_params_set_rate_first(
+    check_snd(snd_pcm_hw_params_set_rate_last(
         ctx->pcm, hwparams, &ctx->rate, &direction
     ));
     if (direction != 0)
@@ -196,16 +190,25 @@ static void init_pcm(CaptureContext *restrict ctx)
         exit(-1);
     }
 
-    const float min_period = ctx->rate / FMIN;
-    for (ctx->period = 1; ctx->period < min_period; ctx->period <<= 1);
+    unsigned desired_period = 1;
+    unsigned max_period = (unsigned)((float)ctx->rate * LATENCY);
+    while (true)
+    {
+        unsigned next = desired_period << 1;
+        if (next > max_period)
+            break;
+        desired_period = next;
+    }
 
     // For some reason this has become more restrictive when moving from legacy
     // 32-bit Raspbian to 64-bit Raspberry Pi OS; now the only accepted value is
     // 1024.
     direction = 0;
+    unsigned long actual_period = desired_period;
     check_snd(snd_pcm_hw_params_set_period_size_near(
-        ctx->pcm, hwparams, &ctx->period, &direction
+        ctx->pcm, hwparams, &actual_period, &direction
     ));
+    ctx->period = actual_period;
 
     check_snd(snd_pcm_hw_params_set_buffer_size(
         ctx->pcm, hwparams, 2*ctx->period
@@ -305,21 +308,21 @@ static void describe_set_elems(
     check_snd(snd_ctl_elem_list(ctl, elements));
     assert(n_elements == snd_ctl_elem_list_get_count(elements));
 
-	snd_ctl_elem_id_t *id;
-	snd_ctl_elem_id_alloca(&id);
-	assert(id);
+    snd_ctl_elem_id_t *id;
+    snd_ctl_elem_id_alloca(&id);
+    assert(id);
 
     snd_ctl_elem_info_t *elem;
-	snd_ctl_elem_info_alloca(&elem);
-	assert(elem);
+    snd_ctl_elem_info_alloca(&elem);
+    assert(elem);
 
     snd_ctl_elem_value_t *value;
-	snd_ctl_elem_value_alloca(&value);
-	assert(value);
+    snd_ctl_elem_value_alloca(&value);
+    assert(value);
 
-	bool vol_set = false, agc_set = false;
+    bool vol_set = false, agc_set = false;
 
-	puts(
+    puts(
         "Control elements ---------------------------------------------------\n"
     );
 
@@ -327,17 +330,17 @@ static void describe_set_elems(
     {
         snd_ctl_elem_list_get_id(elements, e, id);
         snd_ctl_elem_info_set_id(elem, id);
-	    check_snd(snd_ctl_elem_info(ctl, elem));
+        check_snd(snd_ctl_elem_info(ctl, elem));
 
-	    snd_ctl_elem_type_t type = snd_ctl_elem_info_get_type(elem);
+        snd_ctl_elem_type_t type = snd_ctl_elem_info_get_type(elem);
 
 #if EXCRUCIATING_DETAIL
-	    const char *item_name;
-	    unsigned items;
-	    if (type == SND_CTL_ELEM_TYPE_ENUMERATED)
-	    {
-	        item_name = snd_ctl_elem_info_get_item_name(elem);
-	        items = snd_ctl_elem_info_get_items(elem);
+        const char *item_name;
+        unsigned items;
+        if (type == SND_CTL_ELEM_TYPE_ENUMERATED)
+        {
+            item_name = snd_ctl_elem_info_get_item_name(elem);
+            items = snd_ctl_elem_info_get_items(elem);
         }
         else
         {
@@ -530,20 +533,6 @@ static void describe_params(const CaptureContext *restrict ctx)
     puts(
         "Parameters ---------------------------------------------------------");
     check_snd(snd_pcm_dump(ctx->pcm, ctx->output));
-
-    printf(
-        "\n"
-        "Constraints --------------------------------------------------------\n"
-        "  period : %lu > %d (may fail in recent builds of Rpi)\n"
-        "  rate   : %u > %d\n"
-        "  fmin   : %.1f < %.1f\n"
-        "  fmax   : %d > %d\n"
-        "\n",
-        ctx->period, (int)(ctx->rate / FMIN),
-        ctx->rate, (int)(2*FMAX),
-        ctx->rate / (float)ctx->period, FMIN,
-        ctx->rate/2, (int)FMAX
-    );
 }
 
 
@@ -760,13 +749,14 @@ static snd_pcm_sframes_t capture_wait(CaptureContext *restrict ctx)
 }
 
 
-void capture_period(
+void capture_do_capture(
     CaptureContext *ctx,
     void (*consume)(
-        const sample_t *samples,
-        int n_samples,
-        int rate
-    )
+        CaptureContext *ctx,
+        const sample_t *restrict samples,
+        void *p
+    ),
+    void *p
 ) {
     snd_pcm_sframes_t avail;
     do
@@ -775,7 +765,7 @@ void capture_period(
 
     const snd_pcm_channel_area_t *areas;
     snd_pcm_uframes_t offset, frames = ctx->period;
-    int err = (snd_pcm_mmap_begin(ctx->pcm, &areas, &offset, &frames));
+    int err = snd_pcm_mmap_begin(ctx->pcm, &areas, &offset, &frames);
     if (err < 0)
     {
         warn_snd(err);
@@ -797,13 +787,13 @@ void capture_period(
             + (areas->first / 8)
         ) + offset;
 
-        consume(samples, ctx->period, ctx->rate);
+        consume(ctx, samples, p);
     }
     else
     {
         fprintf(
             stderr,
-            "Short read %ld < %lu\n",
+            "Short read %ld < %u\n",
             frames,
             ctx->period
         );
@@ -816,3 +806,11 @@ void capture_period(
     warn_snd(transferred);
 }
 
+unsigned capture_period(CaptureContext *c)
+{
+    return c->period;
+}
+unsigned capture_rate(CaptureContext *c)
+{
+    return c->rate;
+}

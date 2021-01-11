@@ -1,4 +1,5 @@
 *.o
-*.csv
 pianotuner
-
+mod1rd_test
+vrb_test
+data/*

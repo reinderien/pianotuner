@@ -7,268 +7,101 @@
 
 #include <cblas.h>
 
-#include "capture.h"
 #include "freq.h"
 
-#define METER 1
-#define DUMP_ONE 0
+#define PEAK_THRESHOLD 0x5p-3
 
+/*
+Calculate the autocorrelation, ac(t), of f(t). Mathematically,
 
-static void meter(
-    const sample_t *restrict samples, 
-    int n_samples
-)
+ac(t) = 1/D_int * integral from u = D_ac to D_f f(u)*f(u - t), where
+ac's domain is [0, D_ac],
+f's  domain is [0, D_f ], and
+D_int = D_f - D_ac
+
+ac and f are both sampled at even time intervals. It doesn't matter what those
+intervals are because the 1/D_int out in front turns the integral into an
+average. nac samples of ac are calculated and nf samples of f are used. The
+autocorrelation is added to *ac, allowing the user to accumulate
+autocorrelation data over time. Each dot product could have nf - nac + 1 terms,
+but for alignment reasons, it is easier to only use nf - nac. That way, if f is
+5 pages long and ac is 4 pages long, the dot products are exactly 1 page long.
+This also means that f[0] is not actually used.
+ex: nac = 8, nf = 12:
+f: 012.4...8...
+   .   .   0===
+   .   .  1===-
+   .   . 2-==--
+   .   .3--=---
+   .   4-------
+   .  5--- ----
+   . 6---  ----
+   .7---   ----
+           ^f0
+*/
+void autocorrelate(float *f, unsigned nf, float *ac, unsigned nac)
 {
-    sample_t max = 0;
-    int sum = 0, asum = 0;
-    for (int i = 0; i < n_samples; i++)
+    assert(nf > nac);
+    unsigned ndp = nf - nac;
+    float *f0 = f + nac;
+    for (unsigned i = 0; i < nac; i++)
     {
-        sample_t x = samples[i],
-                px = abs(x);
-        max = px > max ? px : max;
-        sum += x;
-        asum += px;
+        ac[i] += cblas_sdot(
+            ndp,     // len
+            f0,      // x
+            1,       // incX
+            f0 - i,  // y
+            1        // incY
+        )/ndp;
     }
-
-    printf(
-        "max=%6d ave=%6.1f pow=%6.1f ",
-        max,
-        sum / (float)n_samples,
-        asum / (float)n_samples
-    );
 }
 
 
-static void dump_one(
-    const float *restrict output,
-    int N, int rate
-)
-{
-    FILE *f = fopen("dump.csv", "w");
-    assert(f);
-    
-    fputs("Index,f,a\n", f);
-    for (int i = 0; i < N; i++)
-    {
-        fprintf(
-            f, "%d,%f,%f\n",
-            i, rate/(float)i, output[i]
-        );
-    }
-    
-    assert(!fclose(f));
-    exit(0);
-}
-
-
-#define AC() cblas_sdot(   \
-    N - i,     /* len  */  \
-    input,     /* x    */  \
-    1,         /* incX */  \
-    input + i, /* y    */  \
-    1          /* incY */  \
-)
-
-
-static int peak_start(
-    const float *restrict input,
-#if DUMP_ONE
-    float *restrict output,
-#endif
-    int N,
-    float energy,
-    float *restrict amin
-)
-{
-    const float peak_thresh = 0.65;
-    *amin = FLT_MAX;
-
-    for (int i = 1; i < N; i++)
-    {
-        float a = AC()/energy;
-    #if DUMP_ONE
-        output[i] = a;
-    #endif
-
-        float diff = a - *amin;
-        if (diff < 0)
-            *amin = a;
-        else if (diff >= peak_thresh)
-            return i + 1;
-    }
-    
-    // No good peak found
-    return -1;
-}
-
-
-static int peak_top(
-    const float *restrict input,
-#if DUMP_ONE
-    float *restrict output,
-#endif
-    int N,
-    float energy,
-    float amin,
-    float *restrict a2max,
-    float *restrict a1max,
-    float *restrict a0max,
-    int istart,
-    int *restrict imax
-)
-{
-    float a2,
-          a1 = amin,
-          a0 = amin;
-    *a2max = amin;
-    *a1max = amin;
-    *a0max = amin;
-    *imax = istart;
-
-    int i;
-    for (i = istart; i < N && i < *imax *5/2; i++)
-    {
-        a2 = a1;
-        a1 = a0;
-        a0 = AC()/energy;
-    #if DUMP_ONE
-        output[i] = a0;
-    #endif
-
-        if (*a1max < a1)
-        {
-            *a2max = a2;
-            *a1max = a1;
-            *a0max = a0;
-            *imax = i-1;
-        }   
-    }
-    
-    #if DUMP_ONE
-    for (; i < N; i++)
-        output[i] = AC() / energy;
-    #endif
-    
-    return i;
-}
-
-
-static float parafit(
-    float a, float b, float c
-)
+/*
+Calculate the x coordinate of the peak of a parabola passing through points
+(-1, a), (0, b), and (1, c).
+*/
+static float parafit(float a, float b, float c)
 {
     return (a - c) / (a + c - 2*b) / 2;
 }
 
 
-static bool autocorrelate(
-    const float *restrict input,
-    int N,
-    int rate,
-    float *restrict energy,
-    float *restrict freq
-)
+float freq(float *ac, unsigned nac, unsigned rate)
 {
-#if DUMP_ONE
-    float *output = calloc(N, sizeof(float));
-    assert(output);
-#endif
-
-    /*
-    We cannot simply take the max peak, because there can be false peaks 33%+ 
-    the magnitude of the first real peak. So looking across the entire
-    autocorrelated spectrum is both wrong and slow.
-    */
-    
-    int i = 0;
-    *energy = AC();
-#if DUMP_ONE
-    output[0] = 1;
-#endif
-#if METER
-    printf("energy=%8.2g ", *energy);
-#endif
-
-    /*
-    1. Maintain a running minimum;
-    2. Compare the normalized current value to the normalized minimum;
-    3. If over some fixed value like 25%, declare the beginning of the first 
-       peak
-    */
-    float amin;
-    int istart = peak_start(
-        input,
-    #if DUMP_ONE
-        output,
-    #endif
-        N, *energy, &amin);
-    if (istart == -1)
+    unsigned i = 1;
+    // Ignore everything before the first zero crossing.
+    while (true)
     {
-    #if METER
-        printf(
-            "                                           "
-            "                                           ");
-    #endif
-        return false;
+        if (i >= nac)
+            return -1;
+        if (ac[i] < 0)
+            break;
+        i++;
     }
-    
-    /*
-    Look for the max over another 50% time, stopping halfway to the next peak.
-    */
-    float a2max, a1max, a0max;
-    int imax, istop = peak_top(
-        input,
-    #if DUMP_ONE
-        output,
-    #endif
-        N, *energy, amin, &a2max, &a1max, &a0max, istart, &imax);
-
-    float delta = parafit(a2max, a1max, a0max);
-    *freq = rate / (imax + delta);
-
-#if METER
-    float pd = a1max - amin;
-    printf(
-        "amin=%5.2f amax=%5.2f istart=%4d imax=%4d istop=%4d delta=%5.2f pd=%5.2f f=%7.1f ",
-         amin,     a1max,      istart,    imax,    istop,    delta,      pd,     *freq
-    );
-#endif
-
-#if DUMP_ONE
-    // Trap bad conditions here
-    dump_one(output, istop, rate);
-    free(output);
-#endif
-
-    return freq;
+    // Now, find the first peak above threshold.
+    float thr = PEAK_THRESHOLD*ac[0];
+    while (true)
+    {
+        if (i >= nac)
+            return -1;
+        if (ac[i] > thr)
+            break;
+        i++;
+    }
+    unsigned k = i;
+    while (true)
+    {
+        if (k >= nac)
+            return -1;
+        if (ac[k] < thr)
+            break;
+        k++;
+    }
+    k--;
+    unsigned j = (i + k)/2;
+    unsigned dj = j - i;
+    // Hope that the AC is mostly just a parabola between i and k.
+    float jfit = (float)j + (float)dj * parafit(ac[j - dj], ac[j], ac[j + dj]);
+    return (float)rate / jfit;
 }
-
-
-void consume(const sample_t *samples, int n_samples, int rate)
-{
-    float *input = calloc(n_samples, sizeof(float));
-    assert(input);
-    
-    for (int i = 0; i < n_samples; i++)
-        input[i] = (float)samples[i];
-        
-#if METER
-    meter(samples, n_samples);
-    
-    struct timespec t1, t2;
-    assert(!clock_gettime(CLOCK_MONOTONIC_RAW, &t1));
-#endif
-
-    float energy, freq;
-    bool success = autocorrelate(input, n_samples, rate, &energy, &freq);
-
-#if METER
-    assert(!clock_gettime(CLOCK_MONOTONIC_RAW, &t2));
-    double dur = t2.tv_sec - t1.tv_sec + 1e-9*(t2.tv_nsec - t1.tv_nsec);
-    printf("t=%6.3e \n", dur);
-    fflush(stdout);
-#endif
-
-    free(input);
-}
-

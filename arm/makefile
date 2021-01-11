@@ -6,19 +6,21 @@
 
 export
 
-objs = main.o capture.o freq.o gauge.o
+objs = main.o capture.o freq.o gauge.o util.o vrb.o
 
-pkg = pkg-config --cflags alsa blas-atlas 
+pkg = pkg-config --cflags alsa
+
+armpl = /opt/arm/armpl_20.3_gcc-9.3
 
 cflags = $(shell ${pkg} --cflags) $\
-         -D_GNU_SOURCE -Wall -std=c18
+         -I${armpl}/include -D_GNU_SOURCE -Wall -std=c18
 ifdef DEBUG
 	cflags += -ggdb
 else
 	cflags += -s -O3 -flto -fomit-frame-pointer -march=native
 endif
 
-ldflags = $(shell ${pkg} --libs) -lm -Wl,--warn-common
+ldflags = $(shell ${pkg} --libs) -L${armpl}/lib -larmpl -lgfortran -lm -Wl,--warn-common
 ifndef DEBUG
 	ldflags += -Wl,--relax,-O3
 endif
@@ -30,6 +32,9 @@ $(info ldflags=${ldflags})
 all: pianotuner
 
 pianotuner: $(objs)
+	gcc $$cflags $$ldflags -o $@ $^
+
+vrb_test: vrb_test.o vrb.o
 	gcc $$cflags $$ldflags -o $@ $^
 
 %.o: %.c makefile

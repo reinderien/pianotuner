@@ -1,0 +1,4 @@
+This is here so that this directory, arm/data, gets added to the git repo,
+since git will not track empty directories. This is where any data generated
+by pianotuner as it runs gets saved. Right now, it's just debug data, like
+autocorrelation snapshots.
