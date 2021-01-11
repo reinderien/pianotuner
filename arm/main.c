@@ -98,15 +98,26 @@ continue_outer_while:
         gauge_message(gauge, power_to_db(power), 0, 0, 0);
         if (power > POWER_THRESHOLD)
         {
-            // There is a note. Load the history with the note before
-            // attempting an autocorrelation.
-            for (unsigned i = 0; i < (hist_len - 1)/period + 1; i++)
+            /*
+            There is a note. Load the history buffer with mid-note audio data.
+            (The note start is overwritten because it contains transients that
+            mess with the reading.)
+            */
+            unsigned i = 0;
+            while (true)
             {
                 power = read_audio(capture, hist);
+                i += period;
+                if (power < POWER_THRESHOLD)
+                {
+                    printf("%f %f\n", power, power_to_db(power));
+                    gauge_message(gauge, power_to_db(power), 0, 0, 0);
+                    goto continue_outer_while;
+                }
+                if (i >= hist_len)
+                    break;
                 printf("%f %f\n", power, power_to_db(power));
                 gauge_message(gauge, power_to_db(power), 0, 0, 0);
-                if (power < POWER_THRESHOLD)
-                    goto continue_outer_while;
             }
 
             memset(ac, 0, sizeof(ac));
@@ -146,7 +157,7 @@ continue_outer_while:
                 {
                     printf("%f %f\n", power, power_to_db(power));
                     gauge_message(gauge, power_to_db(power), 0, 0, 0);
-                    goto continue_outer_while;
+                    break;
                 }
             }
             //save(ac, sizeof(ac), "data/ac.bin");
