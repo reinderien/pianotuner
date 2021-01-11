@@ -110,8 +110,8 @@ void gauge_message(
     float deviation
 )
 {
-    uint16_t u1 = db*CH1_MASK,
-             u2 = octave*CH2_MASK,
+    uint16_t u1 = octave*CH1_MASK,
+             u2 = db*CH2_MASK,
              u5 = deviation*CH5_MASK;
     uint8_t u4 = semitone*CH4_MASK;
 

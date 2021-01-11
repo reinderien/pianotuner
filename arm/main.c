@@ -13,7 +13,7 @@
 
 
 #define ACLEN 2048
-#define POWER_THRESHOLD 128
+#define POWER_THRESHOLD 64
 
 
 static CaptureContext *capture = NULL;
@@ -94,16 +94,16 @@ int main(int argc, const char **argv)
 continue_outer_while:
         power = read_audio(capture, hist);
         printf("%f %f\n", power, power_to_db(power));
-        //gauge_message(gauge, power_to_db(power), 0, 0, 0);
+        gauge_message(gauge, power_to_db(power), 0, 0, 0);
         if (power > POWER_THRESHOLD)
         {
             // There is a note. Load the history with the note before
             // attempting an autocorrelation.
-            for (unsigned i = 0; i < hist_len/period + 1; i++)
+            for (unsigned i = 0; i < (hist_len - 1)/period + 1; i++)
             {
                 power = read_audio(capture, hist);
                 printf("%f %f\n", power, power_to_db(power));
-                //gauge_message(gauge, power_to_db(power), 0, 0, 0);
+                gauge_message(gauge, power_to_db(power), 0, 0, 0);
                 if (power < POWER_THRESHOLD)
                     goto continue_outer_while;
             }
@@ -132,13 +132,19 @@ continue_outer_while:
                     semitone,
                     deviation
                 );
-                //gauge_message(gauge, db, octave, semitone, deviation);
+                gauge_message(
+                    gauge,
+                    power_to_db(power),
+                    octave,
+                    semitone,
+                    deviation
+                );
 
                 power = read_audio(capture, hist);
                 if (power < POWER_THRESHOLD)
                 {
                     printf("%f %f\n", power, power_to_db(power));
-                    //gauge_message(gauge, power_to_db(power), 0, 0, 0);
+                    gauge_message(gauge, power_to_db(power), 0, 0, 0);
                     goto continue_outer_while;
                 }
             }
