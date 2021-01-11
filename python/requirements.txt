@@ -1,4 +1,7 @@
-# The following are needed to build pyFFTW
+# On Windows, install PyAudio and pyFFTW via Conda due to binary deps.
+# pipwin seems to work for PyAudio but is missing pyFFTW.
+
+# The following are needed to build pyFFTW in some environments.
 Cython
 pip
 setuptools
