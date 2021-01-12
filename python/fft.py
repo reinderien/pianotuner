@@ -20,6 +20,17 @@ AxisPair = Tuple[
 SpectrumFn = Callable[[], AxisPair]
 
 
+h_indices = np.arange(1, params.n_harmonics + 1)
+
+# Frequency coefficients to find harmonic section bounds
+coefficients = np.full(
+    params.n_harmonics + 1,
+    params.n_fft_out / params.f_upper,
+)
+coefficients[0] /= SQ2
+coefficients[1:] *= np.sqrt(h_indices*(h_indices + 1))
+
+
 class FFTError(Exception):
     pass
 
@@ -34,7 +45,7 @@ class FFT:
         self.plan_fft()
 
         self.cents: List[np.ndarray]
-        self.bounds: List[Tuple[int, int]]
+        self.harmonics: List[np.ndarray]
 
     def plan_fft(self):
         start = time.monotonic()
@@ -55,10 +66,10 @@ class FFT:
                 has_wisdom = True
 
         def make_fft() -> FFTW:
-            flags = {'FFTW_MEASURE'}
+            flags = ('FFTW_MEASURE',)
 
             if has_wisdom:
-                flags.add('FFTW_WISDOM_ONLY')
+                flags += ('FFTW_WISDOM_ONLY',)
             else:
                 print(f'Planning FFT wisdom on {n_cpus} cpus...', end=' ')
 
@@ -94,17 +105,26 @@ class FFT:
     def set_note(self, note: int):
         f_tune_exact = n_to_f(note)
 
-        # This can't really be vectorized because these will be jagged.
-        self.cents = []
-        self.bounds = []
-        for h in range(1, params.n_harmonics + 1):
-            f_left, f_right = h * f_tune_exact/SQ2, h * f_tune_exact*SQ2
-            i_left, i_right = f_to_fft(f_left), f_to_fft(f_right)
-            self.bounds.append((i_left, i_right))
+        bounds_flat = np.empty(params.n_harmonics + 1, dtype=np.uint32)
+        np.rint(f_tune_exact * coefficients, casting='unsafe', out=bounds_flat)
+        bounds = np.vstack((bounds_flat[:-1], bounds_flat[1:])).T
+        sizes = (bounds[:, 1] - bounds[:, 0])[..., np.newaxis]
+        longest = np.max(sizes)
 
-            fft_indices = np.arange(i_left, i_right + 1)
-            freqs = fft_to_f(fft_indices)
-            self.cents.append(1_200 * np.log(freqs / f_tune_exact/h) / LOG_2)
+        cents = np.linspace(bounds[:, 0], bounds[:, 0] + longest - 1, longest).T
+        cents *= (params.f_upper / f_tune_exact / params.n_fft_out / h_indices)[..., np.newaxis]
+        cents = 1_200 / LOG_2 * np.log(cents)
+
+        # This can't really be vectorized because these will be jagged.
+        self.cents = [
+            cent[:size[0]]
+            for cent, size in zip(cents, sizes)
+        ]
+
+        self.harmonics = [
+            self.fft_out[left: right]
+            for left, right in bounds
+        ]
 
     def get_spectrum(self) -> AxisPair:
         # Read up to n_fft_in samples; usually it will be much smaller
@@ -119,8 +139,8 @@ class FFT:
             self.fft()
 
         harms = []
-        for left, right in self.bounds:
-            harm = np.abs(self.fft_out[left: right+1])
+        for harm in self.harmonics:
+            harm = np.abs(harm)
             yfmax = np.max(harm)
             if yfmax > params.y_max:
                 harm *= params.y_max / yfmax
