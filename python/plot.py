@@ -15,7 +15,7 @@ from matplotlib.transforms import Transform
 
 import params
 from fft import SpectrumFn
-from params import n_to_name
+from params import n_to_name, n_to_f
 
 
 ChangeNoteFn = Callable[[int], None]
@@ -148,5 +148,6 @@ class Plot:
 
     def set_note(self, note: int):
         name = n_to_name(note)
-        self.ax.set_title(f'Harmonic spectrum at {name}')
+        freq = n_to_f(note)
+        self.ax.set_title(f'Harmonic spectrum at {name} ({freq:.1f} Hz)')
         self.fig.canvas.draw()

@@ -13,7 +13,14 @@ def main():
 
     def change_note(delta: int):
         nonlocal note
-        note += delta
+        new_note = note + delta
+        if new_note < params.n_notes:
+            note = new_note
+        elif delta > 1:
+            note = params.n_notes - 1
+        else:
+            return
+
         fft.set_note(note)
         plot.set_note(note)
 
