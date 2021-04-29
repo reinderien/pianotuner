@@ -575,8 +575,8 @@ up a gauge winding that was tangled, trimming some gauge surfaces that were
 rubbing, and general finagling was needed to get the gauges to move reliably,
 and my family was instrumental in getting that done.
 
-Other family help came in the form of a brilliant idea for the diffusion problem
-- simply rough up the LED lenses. This does exactly what it should:
+Other family help came in the form of a brilliant idea for the diffusion 
+problem - simply rough up the LED lenses. This does exactly what it should:
 
 ![Backlit and diffused](https://raw.githubusercontent.com/reinderien/pianotuner/master/journal-pics/backlights.jpg)
 
