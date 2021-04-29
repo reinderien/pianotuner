@@ -567,3 +567,19 @@ compared to what I would have preferred, so if I'm feeling extra ambitious or
 bored and want to de-solder and de-glue the existing LEDs, I would replace them
 with fancy oval ones that have wider viewing angle; or add some diffusion
 material.
+
+# April 29, 2021
+
+We're now in the "long tail" of refinements. One of the trickiest bits - fixing
+up a gauge winding that was tangled, trimming some gauge surfaces that were
+rubbing, and general finagling was needed to get the gauges to move reliably,
+and my family was instrumental in getting that done.
+
+Other family help came in the form of a brilliant idea for the diffusion problem
+- simply rough up the LED lenses. This does exactly what it should:
+
+![Backlit and diffused](https://raw.githubusercontent.com/reinderien/pianotuner/master/journal-pics/backlights.jpg)
+
+There's a pesky and difficult-to-reproduce microcontroller hang that we might
+eventually be able to solve, but in the meantime we're converging on something
+that actually works.
