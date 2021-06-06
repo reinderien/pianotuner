@@ -70,6 +70,7 @@ select_interrupts:
     bsf SSP1IE  ; SPI receive
     
 init_ports:
+    ; RA0: dig out (for debugging)
     ; RA1: ana out OPA1OUT (DAC1)
     ; RA4: ana out DAC4
     ; RB0: dig out COG1A
@@ -346,15 +347,13 @@ fade_disable:
     
 rx_reset:
     ; Reset the receiver state to here if something smells
-    
-spi_rx_first:
-    sleep  ; until we get a serial interrupt for the first byte
-    
     dac_10b_rx 1
     dac_10b_rx 2
     dac_10b_rx 5
     dac_5b_rx 4
     
+    ; until we get a serial interrupt for the first byte of the next packet
+    sleep  
     goto rx_reset
     
     end por_vec
