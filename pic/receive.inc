@@ -30,6 +30,7 @@ dac_rx_&index&_b1:
     btfss ZERO                 ; Check for equality
     bra rx_reset               ; Unexpected check value; reset receiver state
 
+dac_rx_&index&_b2:
     ; Second byte:
     poll_rx
     banksel DAC&index&REFL
@@ -37,6 +38,7 @@ dac_rx_&index&_b1:
     ; Load all 10 bits of DAC value
     ; The DACxLD bits are done via #define so we need to use long-form bsf
     bsf BANKMASK(DACLD), DACLD_DAC&index&LD_POSN
+dac_rx_&index&_done:
 endm
 
 dac_5b_rx macro index

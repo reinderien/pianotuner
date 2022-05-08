@@ -353,7 +353,7 @@ rx_reset:
     dac_5b_rx 4
     
     ; until we get a serial interrupt for the first byte of the next packet
-    sleep  
+    sleep
     goto rx_reset
     
     end por_vec
