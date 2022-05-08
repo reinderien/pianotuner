@@ -1,13 +1,16 @@
 #include <xc.inc>
 #include "receive.inc"
+    
+    
+#define build_for_debug 0
 
 ; CONFIG1
-#if IsDebug==true
-    #warning Programming for debug mode
+#if build_for_debug==1
+    bogus
     config WDTE=OFF     ; Mandatory for debug: watchdog disabled
     config PWRTE=OFF    ; Power-up timer disabled
 #else
-    config WDTE=OFF     ; For now leave it off anyway
+    config WDTE=ON      ; Enable watchdog
     config PWRTE=ON     ; Power-up timer enabled
 #endif
     config FOSC=INTOSC  ; RA7 has I/O. High-freq intern osc (HFINTOSC) used.
@@ -61,11 +64,17 @@ code_psect isr_vec
     retfie
     
 code_psect init
-    ; Leave WDT at default 2s
     ; OSCCON and PIEx share bank 1 - set the latter two in sequence here
     ; TRIS could be done this way too but the order doesn't suit this right now
     
+init_watchdog:
+    banksel WDTCON
+    ; 8 second watchdog expiry
+    movlw (0b01101 << WDTCON_WDTPS_POSN) | (0 << WDTCON_SWDTEN_POSN)
+    movwf WDTCON
+    
 select_interrupts:
+    banksel PIE1
     bsf TMR2IE  ; Fade disable timer
     bsf SSP1IE  ; SPI receive
     
@@ -354,6 +363,11 @@ rx_reset:
     
     ; until we get a serial interrupt for the first byte of the next packet
     sleep
+    
+    ; Since we were in sleep, we need to manually check for a timeout
+    btfsc nTO 
     goto rx_reset
+    
+    reset
     
     end por_vec

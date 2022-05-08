@@ -100,7 +100,7 @@ ${OBJECTDIR}/main.o: main.asm  nbproject/Makefile-${CND_CONF}.mk
 	${MP_AS} -mcpu=PIC16F1773 -c \
 	-o ${OBJECTDIR}/main.o \
 	main.asm \
-	 -msummary=+mem,-psect,-class,+hex,-file,-sha1,-sha256,-xml,-xmlfull -fmax-errors=20 -mwarn=9 -xassembler-with-cpp
+	 -msummary=+mem,-psect,-class,+hex,-file,-sha1,-sha256,-xml,-xmlfull -v -fmax-errors=20 -mwarn=9 -xassembler-with-cpp
 	
 else
 ${OBJECTDIR}/main.o: main.asm  nbproject/Makefile-${CND_CONF}.mk 
@@ -109,7 +109,7 @@ ${OBJECTDIR}/main.o: main.asm  nbproject/Makefile-${CND_CONF}.mk
 	${MP_AS} -mcpu=PIC16F1773 -c \
 	-o ${OBJECTDIR}/main.o \
 	main.asm \
-	 -msummary=+mem,-psect,-class,+hex,-file,-sha1,-sha256,-xml,-xmlfull -fmax-errors=20 -mwarn=9 -xassembler-with-cpp
+	 -msummary=+mem,-psect,-class,+hex,-file,-sha1,-sha256,-xml,-xmlfull -v -fmax-errors=20 -mwarn=9 -xassembler-with-cpp
 	
 endif
 
