@@ -35,4 +35,4 @@ MP_AS_DIR="C:\Program Files\Microchip\xc8\v2.32\pic-as\bin"
 MP_LD_DIR="C:\Program Files\Microchip\xc8\v2.32\pic-as\bin"
 # MP_AR_DIR is not defined
 # MP_BC_DIR is not defined
-DFP_DIR=C:/Program Files/Microchip/MPLABX/v5.50/packs/Microchip/PIC12-16F1xxx_DFP/1.2.63
+DFP_DIR=C:/Users/gtoom/.mchp_packs/Microchip/PIC12-16F1xxx_DFP/1.3.90
