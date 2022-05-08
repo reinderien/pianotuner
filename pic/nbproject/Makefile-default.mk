@@ -94,7 +94,7 @@ MP_PROCESSOR_OPTION=PIC16F1773
 # ------------------------------------------------------------------------------------
 # Rules for buildStep: pic-as-assembler
 ifeq ($(TYPE_IMAGE), DEBUG_RUN)
-${OBJECTDIR}/main.o: main.asm  nbproject/Makefile-${CND_CONF}.mk
+${OBJECTDIR}/main.o: main.asm  nbproject/Makefile-${CND_CONF}.mk 
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/main.o 
 	${MP_AS} -mcpu=PIC16F1773 -c \
@@ -103,7 +103,7 @@ ${OBJECTDIR}/main.o: main.asm  nbproject/Makefile-${CND_CONF}.mk
 	 -msummary=+mem,-psect,-class,+hex,-file,-sha1,-sha256,-xml,-xmlfull -fmax-errors=20 -mwarn=9 -xassembler-with-cpp
 	
 else
-${OBJECTDIR}/main.o: main.asm  nbproject/Makefile-${CND_CONF}.mk
+${OBJECTDIR}/main.o: main.asm  nbproject/Makefile-${CND_CONF}.mk 
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/main.o 
 	${MP_AS} -mcpu=PIC16F1773 -c \
@@ -141,3 +141,11 @@ endif
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r build/default
 	${RM} -r dist/default
+
+# Enable dependency checking
+.dep.inc: .depcheck-impl
+
+DEPFILES=$(shell mplabwildcard ${POSSIBLE_DEPFILES})
+ifneq (${DEPFILES},)
+include ${DEPFILES}
+endif
