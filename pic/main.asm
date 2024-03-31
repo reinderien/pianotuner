@@ -6,7 +6,6 @@
 
 ; CONFIG1
 #if build_for_debug==1
-    bogus
     config WDTE=OFF     ; Mandatory for debug: watchdog disabled
     config PWRTE=OFF    ; Power-up timer disabled
 #else
