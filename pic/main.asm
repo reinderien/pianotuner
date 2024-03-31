@@ -6,7 +6,6 @@
 
 ; CONFIG1
 #if build_for_debug==1
-    bogus
     config WDTE=OFF     ; Mandatory for debug: watchdog disabled
     config PWRTE=OFF    ; Power-up timer disabled
 #else
@@ -103,6 +102,17 @@ init_ports:
     movwf LATB
     movlw 0b00000100
     movwf LATC
+    
+    banksel PCON
+    btfss nRWDT
+    bra watchdog_did_reset
+    btfss nRI
+    bra watchdog_did_reset
+    bra watchdog_didnt_reset
+watchdog_did_reset:
+    banksel LATA
+    bsf LATA0
+watchdog_didnt_reset:
     
     ; Tristate default is input. Before setting LED fade pin to output, enable
     ; high drive mode.
