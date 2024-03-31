@@ -492,7 +492,7 @@ To do:
 - Ideally brass screws installed for all gauges
 - Maybe re-sand and stain surface? Or leave it looking beat up.
 
-# December 13, 2020
+### December 13, 2020
 
 For gauge fastening nuts, they need to be #4-40 (slightly less than 1/8"
 diameter shaft),  slightly less than 1/4" diameter head, and at least 3/4" long
@@ -502,14 +502,14 @@ apparently some family members have equivalents in stock, so I won't place an
 order. (I also considered Acklands-Grainger but it seems that they aren't
 shipping anything until the end of January.)
 
-# December 17, 2020
+### December 17, 2020
 
 Working moving gauge demo end-to-end. Also, the new backlights are in, and have
 a very nice hue and what will certainly be enough brightness. I'm worried about
 how narrow the light cone is, but I'll deal with that with a secondary diffuser
 if I have to.
 
-# December 19, 2020
+### December 19, 2020
 
 Wire cleats, power supply, strain relief and power indicator light all mounted.
 
@@ -531,7 +531,7 @@ registers are misnamed or missing, but there's an easy workaround).
 Today we started cutting gauge faceplate plastic out of a recycled salad
 container. Paper will be glued to the front of these.
 
-# December 20, 2020
+### December 20, 2020
 
 Soldering almost done, save some LED wires:
 
@@ -540,7 +540,7 @@ Soldering almost done, save some LED wires:
 I don't like soldering very much, and I'm not great at it, but the board works 
 (at least for the PIC and the power LED fade, so far).
 
-# December 22, 2020
+### December 22, 2020
 
 Most of the gauge art is done in Gimp. I'm working in 600 DPI, and trying to carefully preserve radial accuracy while substituting gauge scale graphics. Only missing is the decibel scale.
 
@@ -550,7 +550,7 @@ More family help has come in the form of math to accurately identify frequencies
 
 ![Audio math](https://raw.githubusercontent.com/reinderien/pianotuner/master/journal-pics/math.jpg)
 
-# December 30, 2020
+### December 30, 2020
 
 Well, it's been gifted - though it isn't done yet, and I imagine will continue 
 to be a labour of love for some time, particularly in software refinement.
@@ -568,7 +568,7 @@ bored and want to de-solder and de-glue the existing LEDs, I would replace them
 with fancy oval ones that have wider viewing angle; or add some diffusion
 material.
 
-# April 29, 2021
+### April 29, 2021
 
 We're now in the "long tail" of refinements. One of the trickiest bits - fixing
 up a gauge winding that was tangled, trimming some gauge surfaces that were
@@ -583,3 +583,9 @@ problem - simply rough up the LED lenses. This does exactly what it should:
 There's a pesky and difficult-to-reproduce microcontroller hang that we might
 eventually be able to solve, but in the meantime we're converging on something
 that actually works.
+
+### June 5, 2021
+
+The microcontroller issue has probably been
+[squashed](https://github.com/reinderien/pianotuner/commit/4da2e95b08d61a83e59ba1c49cfd787ea24f2794).
+Previously we'd been putting the microcontroller directly to sleep after detecting an out-of-sync issue, but that was likely causing some following data to be dropped. The safer thing to do is - if we get out-of-sync, stay awake, and don't sleep until (a) we know we're in sync and (b) a complete packet has been received.
