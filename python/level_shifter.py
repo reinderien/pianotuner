@@ -118,53 +118,56 @@ def discrete_hysteresis_least_squared_error(params: np.ndarray, e24_series: np.n
 
 def solve(
     discrete: bool = False,
+    pre_baked: bool = False,
+    start_approximate: bool = False,
 ) -> None:
     # Limit R3 to limit sink current. This is an approximation: there will
     # be a contribution from the R7-R2 branch, but R3 will dominate.
     R3min = max(1e3, Vdd / Isinkmax)
 
-    pre_baked_decisions = np.array((
-        (      0.1, 2.2042490254557170, Vdd - 0.1),  # Vpn_lo, inputs for output hi-lo transition
-        (Vdd - 0.5, 4.7010216986522790, Vdd),        # Vo_lo, output hi-lo transition
-        (      0.1, 4.1890968857112800, Vdd - 0.1),  # Vp_pk
-        (      0.1, 2.2109031142887217, Vdd - 0.1),  # Vn_pk
-        (      0.1, 4.8581279065631060, Vdd),        # Vo_pk
+    if pre_baked:
+        decisions = np.array((
+            (      0.1, 2.2042490254557170, Vdd - 0.1),  # Vpn_lo, inputs for output hi-lo transition
+            (Vdd - 0.5, 4.7010216986522790, Vdd),        # Vo_lo, output hi-lo transition
+            (      0.1, 4.1890968857112800, Vdd - 0.1),  # Vp_pk
+            (      0.1, 2.2109031142887217, Vdd - 0.1),  # Vn_pk
+            (      0.1, 4.8581279065631060, Vdd),        # Vo_pk
 
-        (  1e3,  3878., 1e7),  # R1
-        (  1e3, 52390., 1e7),  # R2
-        (R3min,  5513., 1e7),  # R3
-        (  1e3, 23435., 1e7),  # R4
-        # R5 left open
-        (  1e3, 58265., 1e7),  # R6
-        (  1e3,  5754., 1e7),  # R7
-    ))
+            (  1e3,  3878., 1e7),  # R1
+            (  1e3, 52390., 1e7),  # R2
+            (R3min,  5513., 1e7),  # R3
+            (  1e3, 23435., 1e7),  # R4
+            # R5 left open
+            (  1e3, 58265., 1e7),  # R6
+            (  1e3,  5754., 1e7),  # R7
+        ))
+    elif start_approximate:
+        example_resistor_approximation = np.array((
+            ( 7400,  7400,  7400),  # R1
+            (100e3, 100e3, 100e3),  # R2
+            (R3min,   1e4,   1e4),  # R3
+            ( 40e3,  40e3,  40e3),  # R4
+                                    # R5 left open
+            (100e3, 100e3, 100e3),  # R6
+            ( 11e3,  11e3,  11e3),  # R7
+        ))
+    else:
+        decisions = np.array((
+            (      0.1,   0.5*Vdd, Vdd - 0.1),  # Vpn_lo, inputs for output hi-lo transition
+            (Vdd - 0.5, Vdd - 0.3, Vdd),        # Vo_lo, output hi-lo transition
+            (      0.1,   0.5*Vdd, Vdd - 0.1),  # Vp_pk
+            (      0.1,   0.5*Vdd, Vdd - 0.1),  # Vn_pk
+            (      0.1, Vdd - 0.3, Vdd),        # Vo_pk
 
-    example_resistor_approximation = np.array((
-        ( 7400,  7400,  7400),  # R1
-        (100e3, 100e3, 100e3),  # R2
-        (R3min,   1e4,   1e4),  # R3
-        ( 40e3,  40e3,  40e3),  # R4
-                                # R5 left open
-        (100e3, 100e3, 100e3),  # R6
-        ( 11e3,  11e3,  11e3),  # R7
-    ))
+            (  1e3,  6000, 1e7),  # R1
+            (  1e3, 50000, 1e7),  # R2
+            (R3min,  6000, 1e7),  # R3
+            (  1e3, 25000, 1e7),  # R4
+                                  # R5 left open
+            (  1e3, 50000, 1e7),  # R6
+            (  1e3,  5000, 1e7),  # R7
 
-    decisions = np.array((
-        (      0.1,   0.5*Vdd, Vdd - 0.1),  # Vpn_lo, inputs for output hi-lo transition
-        (Vdd - 0.5, Vdd - 0.3, Vdd),        # Vo_lo, output hi-lo transition
-        (      0.1,   0.5*Vdd, Vdd - 0.1),  # Vp_pk
-        (      0.1,   0.5*Vdd, Vdd - 0.1),  # Vn_pk
-        (      0.1, Vdd - 0.3, Vdd),        # Vo_pk
-
-        (  1e3,  6000, 1e7),  # R1
-        (  1e3, 50000, 1e7),  # R2
-        (R3min,  6000, 1e7),  # R3
-        (  1e3, 25000, 1e7),  # R4
-                              # R5 left open
-        (  1e3, 50000, 1e7),  # R6
-        (  1e3,  5000, 1e7),  # R7
-
-    )).T
+        )).T
 
     if discrete:
         e24_decade = np.array((
@@ -302,7 +305,7 @@ def print_symbolic() -> None:
 
 
 if __name__ == '__main__':
-    # solve(discrete=False)
-    solve(discrete=True)
+    solve(discrete=False)
+    # solve(discrete=True)
     # print_symbolic()
 
