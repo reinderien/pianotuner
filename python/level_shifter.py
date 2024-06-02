@@ -179,6 +179,11 @@ def discrete_least_squared_error(R_index: np.ndarray, e24_series: np.ndarray) ->
     return error_vector.dot(error_vector)
 
 
+def print_res(R_index: np.ndarray, convergence: float, e24_series: np.ndarray) -> None:
+    R = index_to_r(R_index=R_index, e24_series=e24_series)
+    print(f'R={R.round()} conv={convergence:.1e}')
+
+
 def solve(
     discrete: bool = False,
     pre_baked: bool = False,
@@ -201,7 +206,7 @@ def solve(
             (  1e3, 52390., 1e7),  # R2
             (R3min,  5513., 1e7),  # R3
             (  1e3, 23435., 1e7),  # R4
-            # R5 left open
+                                   # R5 left open
             (  1e3, 58265., 1e7),  # R6
             (  1e3,  5754., 1e7),  # R7
         ))
@@ -271,8 +276,12 @@ def solve(
             bounds=Bounds(lb=xmin, ub=xmax),
             integrality=np.ones(shape=6, dtype=np.uint8),
             constraints=common_mode_constraint,
-            x0=x0, seed=0, disp=True,
-            maxiter=10,
+            x0=x0, seed=0,
+
+            # todo - decrease this, set disp to false, and print whenever a better solution is found
+            tol=1, disp=True,
+            # callback=functools.partial(print_res, e24_series=e24_series),
+
             # not possible due to inner fsolve
             # vectorized=True, updating='deferred',
         )
@@ -380,3 +389,25 @@ if __name__ == '__main__':
     # solve(discrete=False, pre_baked=True)
     solve(discrete=True)
     # print_symbolic()
+
+'''
+Example output:
+...
+differential_evolution step 57: f(x)= 2.1602129007184598e-05
+
+Optimization terminated successfully.
+Total error: 2.16e-05
+Iterations: 57
+Evaluations: 2979
+Hysteresis transition error: 0.06%
+Highest common-mode voltage: 3.12
+Vpn_lo: 2.089
+ Vo_lo: 4.642
+ Vp_pk: 4.159
+ Vn_pk: 2.084
+ Vo_pk: 4.843
+Resistances: [  12000. 5100000.  510000. 1500000. 4300000.   18000.]
+KCL node error:
+(array([0.00222194, 0.00402005, 0.00040838]),
+ array([-9.67262272e-06,  8.61215982e-06, -6.97556323e-06]))
+'''
