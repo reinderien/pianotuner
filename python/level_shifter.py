@@ -29,6 +29,7 @@ Vinhi = 2.8   # Schmitt trigger design high transition voltage
 Vinlo = 1.2   # Schmitt trigger design low transition voltage
 Vimax = 3.92  # from the pi
 Isinkmax = 1e-3  # Target output sink for reasonable saturation
+Ibias = 65e-9  # comparator spec, into both inputs
 
 
 def hysteresis_error(
@@ -38,8 +39,8 @@ def hysteresis_error(
     # High input, output pulled low immediately before transition
     R12 = 1/(1/R1 + 1/R2)
     R56 = R6  # R5 open
-    Vn_hi = Vinhi*R56/(R56 + R4)
-    Vp_hi = Vdd*R12/(R12 + R7)
+    Vp_hi = Vinhi*R56/(R56 + R4)
+    Vn_hi = Vdd*R12/(R12 + R7)
 
     # Converge to comparator inputs matching before low-high output transition
     return Vp_hi/Vn_hi - 1
@@ -62,13 +63,13 @@ def node_currents(
 def kcl(currents: np.ndarray) -> np.ndarray:
     i1, i2, i3, i4, i5, i6, i7 = currents
     lhs = np.array((
-        i4 + i5,  # Positive input node
+        i4 + i5 + Ibias,  # Positive input node
         i7 + i2,  # Negative input node
         i2 + i6,  # Output node
     ))
     rhs = np.array((
         i6,
-        i1,
+        i1 + Ibias,
         i3,
     ))
     return rhs/lhs - 1
@@ -279,7 +280,7 @@ def solve(
             x0=x0, seed=0,
 
             # todo - decrease this, set disp to false, and print whenever a better solution is found
-            tol=1, disp=True,
+            tol=0.75, disp=True, maxiter=25,
             # callback=functools.partial(print_res, e24_series=e24_series),
 
             # not possible due to inner fsolve
