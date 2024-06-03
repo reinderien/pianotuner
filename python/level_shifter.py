@@ -196,9 +196,47 @@ def discrete_least_squared_error(R_index: np.ndarray, e24_series: np.ndarray) ->
     return sqerr
 
 
-def print_res(R_index: np.ndarray, convergence: float, e24_series: np.ndarray) -> None:
-    R = index_to_r(R_index=R_index, e24_series=e24_series)
-    print(f'R={R.round()} conv={convergence:.1e}')
+def dump(
+    result: OptimizeResult,
+    e24_series: np.ndarray,
+    discrete: bool,
+) -> None:
+    # print(result.message)
+    print(f'Total error: {result.fun:.2e}')
+    print(f'Iterations: {result.nit}')
+    print(f'Evaluations: {result.nfev}')
+
+    if discrete:
+        R = index_to_r(R_index=result.x, e24_series=e24_series)
+        V = solve_v(R).x
+    else:
+        V, R = unpack_vr(result.x)
+    Vpn_lo, Vo_lo, Vp_pk, Vn_pk, Vo_pk = V
+    eq_hyst, eq_hi = system_nodes(*V, *R)
+
+    print(f'Hysteresis transition error: {hysteresis_error(*R):.2%}')
+    print(f'Highest common-mode voltage: {common_mode(*V):.2f}')
+    print(f'Vpn_lo: {Vpn_lo:.3f}')
+    print(f' Vo_lo: {Vo_lo:.3f}')
+    print(f' Vp_pk: {Vp_pk:.3f}')
+    print(f' Vn_pk: {Vn_pk:.3f}')
+    print(f' Vo_pk: {Vo_pk:.3f}')
+    print('Resistances:', R.round())
+    print('KCL node error:')
+    print(eq_hyst)
+    print(eq_hi)
+    print()
+
+
+def print_better(
+    intermediate_result: OptimizeResult,
+    e24_series: np.ndarray,
+    solution_state: dict,
+) -> None:
+    old = solution_state.get('old')
+    if old is None or old.fun > intermediate_result.fun:
+        solution_state['old'] = intermediate_result
+        dump(intermediate_result, e24_series=e24_series, discrete=True)
 
 
 def solve(
@@ -287,6 +325,14 @@ def solve(
     xmin, x0, xmax = decisions.T
 
     if discrete:
+        solution_state = {}
+
+        def callback(intermediate_result: OptimizeResult) -> None:
+            print_better(
+                intermediate_result=intermediate_result,
+                e24_series=e24_series, solution_state=solution_state,
+            )
+
         result = differential_evolution(
             func=discrete_least_squared_error,
             args=(e24_series,),
@@ -295,10 +341,8 @@ def solve(
             constraints=common_mode_constraint,
             x0=x0, seed=0,
             vectorized=True, updating='deferred',
-
-            # todo - decrease this, set disp to false, and print whenever a better solution is found
-            tol=0.75, disp=True, maxiter=25,
-            # callback=functools.partial(print_res, e24_series=e24_series),
+            tol=0.75, maxiter=125,
+            callback=callback,
         )
     else:
         result = minimize(
@@ -315,27 +359,7 @@ def solve(
 
     print()
     print(result.message)
-    print(f'Total error: {result.fun:.2e}')
-    print(f'Iterations: {result.nit}')
-    print(f'Evaluations: {result.nfev}')
-
-    if discrete:
-        R = index_to_r(R_index=result.x, e24_series=e24_series)
-        V = solve_v(R).x
-    else:
-        V, R = unpack_vr(result.x)
-    Vpn_lo, Vo_lo, Vp_pk, Vn_pk, Vo_pk = V
-
-    print(f'Hysteresis transition error: {hysteresis_error(*R):.2%}')
-    print(f'Highest common-mode voltage: {common_mode(*V):.2f}')
-    print(f'Vpn_lo: {Vpn_lo:.3f}')
-    print(f' Vo_lo: {Vo_lo:.3f}')
-    print(f' Vp_pk: {Vp_pk:.3f}')
-    print(f' Vn_pk: {Vn_pk:.3f}')
-    print(f' Vo_pk: {Vo_pk:.3f}')
-    print('Resistances:', R.round())
-    print('KCL node error:')
-    pprint(system_nodes(*V, *R))
+    dump(result, e24_series=e24_series, discrete=discrete)
 
 
 def print_symbolic() -> None:
