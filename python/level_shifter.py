@@ -54,7 +54,7 @@ def node_currents(
     i2 = (Vo - Vn)/R2
     i3 = (Vdd - Vo)/R3
     i4 = (Vp - Vi)/R4
-    i5 = 0
+    i5 = np.zeros_like(i4)
     i6 = (Vo - Vp)/R6
     i7 = (Vdd - Vn)/R7
     return np.array((i1, i2, i3, i4, i5, i6, i7))
@@ -122,6 +122,11 @@ def kcl_errors(
     return errors
 
 
+def kcl_errors_lstsq(V: np.ndarray, R: np.ndarray) -> np.ndarray:
+    V = V.reshape((5, -1))
+    return kcl_errors(V=V, R=R, dof5=True).ravel()
+
+
 def unpack_vr(params: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     return np.split(params, (5,))
 
@@ -136,18 +141,22 @@ def index_to_r(R_index: np.ndarray, e24_series: np.ndarray) -> np.ndarray:
 
 
 def solve_v(R: np.ndarray) -> OptimizeResult:
-    return root(
-        fun=functools.partial(
-            kcl_errors, R=R, dof5=True,
-        ),
-        x0=(
-            2.2,  # Vpn_lo, inputs for output hi-lo transition
-            4.7,  # Vo_lo, output hi-lo transition
-            4.2,  # Vp_pk
-            2.2,  # Vn_pk
-            4.8,  # Vo_pk
-        ),
+    x0 = np.array((
+        2.2,  # Vpn_lo, inputs for output hi-lo transition
+        4.7,  # Vo_lo, output hi-lo transition
+        4.2,  # Vp_pk
+        2.2,  # Vn_pk
+        4.8,  # Vo_pk
+    ))
+    if len(R.shape) == 2:
+        x0 = x0.repeat(R.shape[1])
+
+    result = root(
+        fun=kcl_errors_lstsq,
+        args=(R,),
+        x0=x0,
     )
+    return result
 
 
 def common_mode(
@@ -158,8 +167,11 @@ def common_mode(
 
 def discrete_common_mode(R_index: np.ndarray, e24_series: np.ndarray) -> float:
     R = index_to_r(R_index, e24_series)
-    sol = solve_v(R)
-    return common_mode(*sol.x)
+    sol = solve_v(R).x.reshape((5, -1))
+    vcm = common_mode(*sol)
+    if len(R.shape) == 2:
+        vcm = vcm[np.newaxis, :]
+    return vcm
 
 
 def hysteresis_error_packed(params: np.ndarray) -> float:
@@ -171,13 +183,17 @@ def hysteresis_error_packed(params: np.ndarray) -> float:
 def discrete_least_squared_error(R_index: np.ndarray, e24_series: np.ndarray) -> float:
     R = index_to_r(R_index=R_index, e24_series=e24_series)
     V_solution = solve_v(R)
-    V = V_solution.x
+    V = V_solution.x.reshape((5, -1))
     err_ihyst, err_ihi = system_nodes(*V, *R)
     err_vhist = hysteresis_error(*R)
     error_vector = np.concatenate((
         err_ihyst, err_ihi, (err_vhist,),
     ))
-    return error_vector.dot(error_vector)
+    if len(error_vector.shape) == 1:
+        sqerr = error_vector.dot(error_vector)
+    else:
+        sqerr = np.einsum('ij,ij->j', error_vector, error_vector)
+    return sqerr
 
 
 def print_res(R_index: np.ndarray, convergence: float, e24_series: np.ndarray) -> None:
@@ -278,13 +294,11 @@ def solve(
             integrality=np.ones(shape=6, dtype=np.uint8),
             constraints=common_mode_constraint,
             x0=x0, seed=0,
+            vectorized=True, updating='deferred',
 
             # todo - decrease this, set disp to false, and print whenever a better solution is found
             tol=0.75, disp=True, maxiter=25,
             # callback=functools.partial(print_res, e24_series=e24_series),
-
-            # not possible due to inner fsolve
-            # vectorized=True, updating='deferred',
         )
     else:
         result = minimize(
