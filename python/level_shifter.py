@@ -1,5 +1,4 @@
 import functools
-from pprint import pprint
 
 import numpy as np
 import sympy
@@ -37,10 +36,17 @@ def hysteresis_error(
 ) -> float:
     # Solve for first hysteresis transition:
     # High input, output pulled low immediately before transition
+
+    """
+    I7 = Vo/R12 + Ibias   i.
+    I7 = (Vdd - Vo)/R7    ii.
+    Vo = (Vdd - R7*Ibias)R12/(R12 + R7)
+    """
     R12 = 1/(1/R1 + 1/R2)
+    Vn_hi = (Vdd - R7*Ibias)*R12/(R12 + R7)
+
     R56 = R6  # R5 open
-    Vp_hi = Vinhi*R56/(R56 + R4)
-    Vn_hi = Vdd*R12/(R12 + R7)
+    Vp_hi = (Vinhi - R4*Ibias)*R56/(R56 + R4)
 
     # Converge to comparator inputs matching before low-high output transition
     return Vp_hi/Vn_hi - 1
@@ -172,6 +178,15 @@ def discrete_common_mode(R_index: np.ndarray, e24_series: np.ndarray) -> float:
     if len(R.shape) == 2:
         vcm = vcm[np.newaxis, :]
     return vcm
+
+
+def discrete_pullup(R_index: np.ndarray, e24_series: np.ndarray) -> float:
+    R = index_to_r(R_index, e24_series)
+    V = solve_v(R).x.reshape((5, -1))
+    Vpn_lo, Vo_lo, Vp_pk, Vn_pk, Vo_pk = V
+    if len(R.shape) == 2:
+        Vo_lo = Vo_lo[np.newaxis, :]
+    return Vo_lo
 
 
 def hysteresis_error_packed(params: np.ndarray) -> float:
@@ -309,6 +324,10 @@ def solve(
             fun=functools.partial(discrete_common_mode, e24_series=e24_series),
             lb=0, ub=Vdd - 2,
         )
+        pullup_constraint = NonlinearConstraint(
+            fun=functools.partial(discrete_pullup, e24_series=e24_series),
+            lb=4.5, ub=Vdd,
+        )
     else:
         node_constraint = NonlinearConstraint(
             fun=kcl_errors_packed, lb=0, ub=0,
@@ -338,10 +357,13 @@ def solve(
             args=(e24_series,),
             bounds=Bounds(lb=xmin, ub=xmax),
             integrality=np.ones(shape=6, dtype=np.uint8),
-            constraints=common_mode_constraint,
+            constraints=(
+                common_mode_constraint,
+                pullup_constraint,
+            ),
             x0=x0, seed=0,
             vectorized=True, updating='deferred',
-            tol=0.75, maxiter=125,
+            tol=0.5, maxiter=125,
             callback=callback,
         )
     else:
