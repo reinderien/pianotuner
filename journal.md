@@ -589,3 +589,67 @@ that actually works.
 The microcontroller issue has probably been
 [squashed](https://github.com/reinderien/pianotuner/commit/4da2e95b08d61a83e59ba1c49cfd787ea24f2794).
 Previously we'd been putting the microcontroller directly to sleep after detecting an out-of-sync issue, but that was likely causing some following data to be dropped. The safer thing to do is - if we get out-of-sync, stay awake, and don't sleep until (a) we know we're in sync and (b) a complete packet has been received.
+
+### May 21, 2024
+
+After a long period of dormancy, the project got new attention from my brother who reverted the Pi
+from Arch Linux to the stock PiOS. The DAC microcontroller is dead. He passed the box, board and
+all, to me several weeks ago, then - for a week through today - visited me in person. Whereas it
+started off being tuner-themed, the majority of the time ended up being an (extremely productive)
+organisation spree. We also visited a local electronics shop to buy connectors and a new, more
+spacious board, as well as a comparator to be configured for level shifting.
+
+### June 2, 2024
+
+We needed to buy a level shifter, or at least something to build one, because the RPI and PIC
+operate at very different logic levels. I don't remember why, at the time, I deemed it OK to omit
+a level shifter, especially given sketchy and very different outputs seemingly exceeding the Pi's
+own digital rail; but this time around we need to rule out more things to not fry the poor micro
+again.
+
+The comparator we bought is a KA393. After a first prototyping effort failed, I did some more
+research and found out that - to my surprise - it's open-collector, which really complicates
+things.
+
+Something like the following will have to be used -
+
+![Level shifter](https://raw.githubusercontent.com/reinderien/pianotuner/master/journal-pics/level-shifter-sketch.png)
+
+This needs to meet several requirements:
+
+- Compatibility with the observed, and different, clock and MOSI levels in my notes
+- Conversion up to 5V for the PIC
+- Noise immunity via hysteresis, which for now I'm assuming will run from 1.2 through 2.8 volts
+- Ability to support a resistive pullup without throwing the positive and negative feedback gains
+  out of whack
+- Pullup not too small, or else it will drag up the comparator's saturation voltage
+- Pullup not too large, or else the high voltage won't be high enough for the MCU
+- Account for a bias current of 65 nA
+- Account for what is now (in the Z-output case) a non-trivial resistive network with no isolation
+  between the negative and positive branches
+- Account for discretisation error due to E-series resistors
+- Don't blow up the comparator by giving it too high a common-mode input
+
+In this case I've given up on pen-and-paper first-principles calculation, and wrote
+`level_shifter.py`.
+
+In the interior optimisation loop, it uses `scipy.optimize.root`: a vector-valued root-finding
+function which wraps Argonne National Laboratory MINPACK's hybrid implementation of the
+[Powell method](https://en.wikipedia.org/wiki/Powell%27s_method). This is used to solve two
+[KCL](https://en.wikipedia.org/wiki/Kirchhoff%27s_circuit_laws#Kirchhoff's_current_law_(KCL))
+systems, one for the output-Z hysteresis transition case and one for the worst-case common-mode
+input. With five voltages as degrees of freedom and the entire resistive network as given, it
+solves the trickier network problems in acceptable time - even when given many dozens of vector
+dimensions from the outer loop.
+
+![MINPACK](https://raw.githubusercontent.com/reinderien/pianotuner/master/journal-pics/argonne.jpg)
+
+The outer loop needs to be MINLP - mixed-integer nonlinear programming. This stage of the
+optimisation needs to be discrete (integral) because of the
+[E24 series](https://en.wikipedia.org/wiki/E_series_of_preferred_numbers#Lists); I'd prefer not to
+buy exotic resistances from the internet. It's nonlinear because both several voltages and all of
+the resistances are unknown, and they multiply with each other. I only know two free solvers. The 
+first is `scipy.optimize.differential_evolution` and the second is
+[APOPT](http://apopt.com/) as wrapped by [GEKKO](https://gekko.readthedocs.io/en/latest/). I use
+the former for convenience. It's an implementation of a 1997 Storn-Price stochastic population
+method and does support bounded integral variables. It's slow, but that's fine.
