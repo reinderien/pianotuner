@@ -453,8 +453,112 @@ if __name__ == '__main__':
 
 '''
 Example output:
-...
-differential_evolution step 57: f(x)= 2.1602129007184598e-05
+
+Total error: 1.42e-02
+Iterations: 31
+Evaluations: 33
+Hysteresis transition error: 2.51%
+Highest common-mode voltage: 3.14
+Vpn_lo: 2.039
+ Vo_lo: 4.627
+ Vp_pk: 4.109
+ Vn_pk: 2.179
+ Vo_pk: 4.807
+Resistances: [  62000. 1300000.  160000.  510000. 1600000.   91000.]
+KCL node error:
+[-0.05375866 -0.10290087 -0.00854464]
+[ 0.00044485 -0.00026804 -0.00045755]
+
+Total error: 1.85e-04
+Iterations: 36
+Evaluations: 38
+Hysteresis transition error: -0.82%
+Highest common-mode voltage: 3.12
+Vpn_lo: 2.087
+ Vo_lo: 4.824
+ Vp_pk: 4.139
+ Vn_pk: 2.100
+ Vo_pk: 4.937
+Resistances: [  24000. 2000000.  150000.  820000. 2400000.   36000.]
+KCL node error:
+[-0.00540004 -0.00937301 -0.0006252 ]
+[-9.78346784e-06  7.35118785e-06  1.15541537e-06]
+
+Total error: 1.29e-04
+Iterations: 49
+Evaluations: 51
+Hysteresis transition error: 1.01%
+Highest common-mode voltage: 3.09
+Vpn_lo: 2.078
+ Vo_lo: 4.906
+ Vp_pk: 4.106
+ Vn_pk: 2.074
+ Vo_pk: 4.963
+Resistances: [  82000. 2200000.  160000. 1800000. 5100000.  130000.]
+KCL node error:
+[0.00267151 0.00437091 0.00024693]
+[1.53179961e-07 5.32302581e-05 1.57891433e-05]
+
+Total error: 6.00e-05
+Iterations: 71
+Evaluations: 73
+Hysteresis transition error: -0.56%
+Highest common-mode voltage: 3.05
+Vpn_lo: 2.066
+ Vo_lo: 4.640
+ Vp_pk: 4.037
+ Vn_pk: 2.062
+ Vo_pk: 4.697
+Resistances: [  56000. 1100000.  200000. 2200000. 5600000.   91000.]
+KCL node error:
+[0.0027404  0.00448257 0.0004342 ]
+[ 6.57815128e-06  2.59759108e-06 -1.54980265e-05]
+
+Total error: 3.23e-05
+Iterations: 110
+Evaluations: 112
+Hysteresis transition error: 0.38%
+Highest common-mode voltage: 3.19
+Vpn_lo: 2.223
+ Vo_lo: 4.755
+ Vp_pk: 4.139
+ Vn_pk: 2.233
+ Vo_pk: 4.865
+Resistances: [ 300000. 2200000.  240000. 1600000. 3600000.  470000.]
+KCL node error:
+[-0.0010384  -0.00160569 -0.00011408]
+[-4.75070319e-06 -1.67146250e-05 -3.61469911e-07]
+
+Total error: 2.82e-05
+Iterations: 117
+Evaluations: 119
+Hysteresis transition error: 0.27%
+Highest common-mode voltage: 3.16
+Vpn_lo: 2.187
+ Vo_lo: 4.819
+ Vp_pk: 4.131
+ Vn_pk: 2.198
+ Vo_pk: 4.915
+Resistances: [ 300000. 2700000.  240000. 1800000. 4300000.  470000.]
+KCL node error:
+[-0.00243131 -0.00382453 -0.00025618]
+[-1.14120050e-05  1.77891666e-05  3.16916313e-06]
+
+Maximum number of iterations has been exceeded.
+Total error: 2.82e-05
+Iterations: 125
+Evaluations: 127
+Hysteresis transition error: 0.27%
+Highest common-mode voltage: 3.16
+Vpn_lo: 2.187
+ Vo_lo: 4.819
+ Vp_pk: 4.131
+ Vn_pk: 2.198
+ Vo_pk: 4.915
+Resistances: [ 300000. 2700000.  240000. 1800000. 4300000.  470000.]
+KCL node error:
+[-0.00243131 -0.00382453 -0.00025618]
+[-1.14120050e-05  1.77891666e-05  3.16916313e-06]
 
 Optimization terminated successfully.
 Total error: 2.16e-05
