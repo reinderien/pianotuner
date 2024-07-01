@@ -213,8 +213,8 @@ def discrete_least_squared_error(R_index: np.ndarray, e24_series: np.ndarray) ->
 
 def dump(
     result: OptimizeResult,
-    e24_series: np.ndarray,
     discrete: bool,
+    e24_series: np.ndarray | None = None,
 ) -> None:
     # print(result.message)
     print(f'Total error: {result.fun:.2e}')
@@ -281,14 +281,21 @@ def solve(
             (  1e3,  5754., 1e7),  # R7
         ))
     elif start_approximate:
+        var_voltage = np.array((
+            (      0.1, 2.187, Vdd - 0.1),  # Vpn_lo, inputs for output hi-lo transition
+            (Vdd - 0.5, 4.819, Vdd      ),  # Vo_lo, output hi-lo transition
+            (      0.1, 4.131, Vdd - 0.1),  # Vp_pk
+            (      0.1, 2.198, Vdd - 0.1),  # Vn_pk
+            (      0.1, 4.915, Vdd      ),  # Vo_pk
+        ))
         var_resistance = np.array((
-            ( 7400,  7400,  7400),  # R1
-            (100e3, 100e3, 100e3),  # R2
-            (R3min,   1e4,   1e4),  # R3
-            ( 40e3,  40e3,  40e3),  # R4
-                                    # R5 left open
-            (100e3, 100e3, 100e3),  # R6
-            ( 11e3,  11e3,  11e3),  # R7
+            ( 27e3,  30e3,   33e3),  # R1
+            (330e3, 330e3,  330e3),  # R2
+            ( 27e3,  27e3,   27e3),  # R3
+            (167e3, 167e3,  167e3),  # R4
+                                     # R5 left open
+            (470e3, 470e3, 470e3),   # R6
+            ( 47e3,  47e3,  47e3),   # R7
         ))
     else:
         var_voltage = np.array((
@@ -381,7 +388,7 @@ def solve(
 
     print()
     print(result.message)
-    dump(result, e24_series=e24_series, discrete=discrete)
+    dump(result, e24_series=e24_series if discrete else None, discrete=discrete)
 
 
 def print_symbolic() -> None:
