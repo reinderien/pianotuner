@@ -60,92 +60,6 @@
 </layers>
 <schematic xreflabel="%F%N/%S.%C%R" xrefpart="/%S.%C%R">
 <libraries>
-<library name="con-wago-500" urn="urn:adsk.eagle:library:195">
-<description>&lt;b&gt;Wago Screw Clamps&lt;/b&gt;&lt;p&gt;
-Grid 5.00 mm&lt;p&gt;
-&lt;author&gt;Created by librarian@cadsoft.de&lt;/author&gt;</description>
-<packages>
-<package name="W237-102" urn="urn:adsk.eagle:footprint:10676/1" library_version="2">
-<description>&lt;b&gt;WAGO SCREW CLAMP&lt;/b&gt;</description>
-<wire x1="-3.491" y1="-2.286" x2="-1.484" y2="-0.279" width="0.254" layer="51"/>
-<wire x1="1.488" y1="-2.261" x2="3.469" y2="-0.254" width="0.254" layer="51"/>
-<wire x1="-4.989" y1="-5.461" x2="4.993" y2="-5.461" width="0.1524" layer="21"/>
-<wire x1="4.993" y1="3.734" x2="4.993" y2="3.531" width="0.1524" layer="21"/>
-<wire x1="4.993" y1="3.734" x2="-4.989" y2="3.734" width="0.1524" layer="21"/>
-<wire x1="-4.989" y1="-5.461" x2="-4.989" y2="-3.073" width="0.1524" layer="21"/>
-<wire x1="-4.989" y1="-3.073" x2="-3.389" y2="-3.073" width="0.1524" layer="21"/>
-<wire x1="-3.389" y1="-3.073" x2="-1.611" y2="-3.073" width="0.1524" layer="51"/>
-<wire x1="-1.611" y1="-3.073" x2="1.615" y2="-3.073" width="0.1524" layer="21"/>
-<wire x1="3.393" y1="-3.073" x2="4.993" y2="-3.073" width="0.1524" layer="21"/>
-<wire x1="-4.989" y1="-3.073" x2="-4.989" y2="3.531" width="0.1524" layer="21"/>
-<wire x1="4.993" y1="-3.073" x2="4.993" y2="-5.461" width="0.1524" layer="21"/>
-<wire x1="-4.989" y1="3.531" x2="4.993" y2="3.531" width="0.1524" layer="21"/>
-<wire x1="-4.989" y1="3.531" x2="-4.989" y2="3.734" width="0.1524" layer="21"/>
-<wire x1="4.993" y1="3.531" x2="4.993" y2="-3.073" width="0.1524" layer="21"/>
-<wire x1="1.615" y1="-3.073" x2="3.393" y2="-3.073" width="0.1524" layer="51"/>
-<circle x="-2.5" y="-1.27" radius="1.4986" width="0.1524" layer="51"/>
-<circle x="-2.5" y="2.2098" radius="0.508" width="0.1524" layer="21"/>
-<circle x="2.5038" y="-1.27" radius="1.4986" width="0.1524" layer="51"/>
-<circle x="2.5038" y="2.2098" radius="0.508" width="0.1524" layer="21"/>
-<pad name="1" x="-2.5" y="-1.27" drill="1.1938" shape="long" rot="R90"/>
-<pad name="2" x="2.5" y="-1.27" drill="1.1938" shape="long" rot="R90"/>
-<text x="-5.04" y="-7.62" size="1.27" layer="27" ratio="10">&gt;VALUE</text>
-<text x="-3.8462" y="-5.0038" size="1.27" layer="25" ratio="10">&gt;NAME</text>
-<text x="-4.532" y="0.635" size="1.27" layer="21" ratio="10">1</text>
-<text x="0.421" y="0.635" size="1.27" layer="21" ratio="10">2</text>
-</package>
-</packages>
-<packages3d>
-<package3d name="W237-102" urn="urn:adsk.eagle:package:10688/1" type="box" library_version="2">
-<description>WAGO SCREW CLAMP</description>
-<packageinstances>
-<packageinstance name="W237-102"/>
-</packageinstances>
-</package3d>
-</packages3d>
-<symbols>
-<symbol name="KL" urn="urn:adsk.eagle:symbol:10675/1" library_version="2">
-<circle x="1.27" y="0" radius="1.27" width="0.254" layer="94"/>
-<text x="0" y="0.889" size="1.778" layer="95" rot="R180">&gt;NAME</text>
-<pin name="KL" x="5.08" y="0" visible="off" length="short" direction="pas" rot="R180"/>
-</symbol>
-<symbol name="KL+V" urn="urn:adsk.eagle:symbol:10673/1" library_version="2">
-<circle x="1.27" y="0" radius="1.27" width="0.254" layer="94"/>
-<text x="-2.54" y="-3.683" size="1.778" layer="96">&gt;VALUE</text>
-<text x="0" y="0.889" size="1.778" layer="95" rot="R180">&gt;NAME</text>
-<pin name="KL" x="5.08" y="0" visible="off" length="short" direction="pas" rot="R180"/>
-</symbol>
-</symbols>
-<devicesets>
-<deviceset name="W237-102" urn="urn:adsk.eagle:component:10702/2" prefix="X" uservalue="yes" library_version="2">
-<description>&lt;b&gt;WAGO SCREW CLAMP&lt;/b&gt;</description>
-<gates>
-<gate name="-1" symbol="KL" x="0" y="5.08" addlevel="always"/>
-<gate name="-2" symbol="KL+V" x="0" y="0" addlevel="always"/>
-</gates>
-<devices>
-<device name="" package="W237-102">
-<connects>
-<connect gate="-1" pin="KL" pad="1"/>
-<connect gate="-2" pin="KL" pad="2"/>
-</connects>
-<package3dinstances>
-<package3dinstance package3d_urn="urn:adsk.eagle:package:10688/1"/>
-</package3dinstances>
-<technologies>
-<technology name="">
-<attribute name="MF" value="" constant="no"/>
-<attribute name="MPN" value="237-102" constant="no"/>
-<attribute name="OC_FARNELL" value="unknown" constant="no"/>
-<attribute name="OC_NEWARK" value="70K9898" constant="no"/>
-<attribute name="POPULARITY" value="32" constant="no"/>
-</technology>
-</technologies>
-</device>
-</devices>
-</deviceset>
-</devicesets>
-</library>
 <library name="supply1" urn="urn:adsk.eagle:library:371">
 <description>&lt;b&gt;Supply Symbols&lt;/b&gt;&lt;p&gt;
  GND, VCC, 0V, +5V, -5V, etc.&lt;p&gt;
@@ -9470,7 +9384,6 @@ Source: http://www.diodes.com/datasheets/ds23001.pdf</description>
 </class>
 </classes>
 <parts>
-<part name="XP" library="con-wago-500" library_urn="urn:adsk.eagle:library:195" deviceset="W237-102" device="" package3d_urn="urn:adsk.eagle:package:10688/1"/>
 <part name="P+1" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="+5V" device=""/>
 <part name="GND1" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 <part name="U1" library="microchip-others" deviceset="PIC16F177" device="/SP" technology="3-I"/>
@@ -9561,6 +9474,8 @@ Source: http://www.diodes.com/datasheets/ds23001.pdf</description>
 <part name="D17" library="diode" library_urn="urn:adsk.eagle:library:210" deviceset="1N581*" device="" package3d_urn="urn:adsk.eagle:package:43421/1" technology="7-T"/>
 <part name="GND16" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 <part name="JPSL" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X1" device="" package3d_urn="urn:adsk.eagle:package:22485/2"/>
+<part name="JP5" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X1" device="" package3d_urn="urn:adsk.eagle:package:22485/2"/>
+<part name="JP0" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X1" device="" package3d_urn="urn:adsk.eagle:package:22485/2"/>
 </parts>
 <sheets>
 <sheet>
@@ -9660,13 +9575,6 @@ an external driver like the
 <frame x1="0" y1="0" x2="372.11" y2="220.98" columns="9" rows="6" layer="97"/>
 </plain>
 <instances>
-<instance part="XP" gate="-1" x="29.21" y="182.88" smashed="yes">
-<attribute name="NAME" x="27.94" y="181.991" size="1.778" layer="95" rot="MR0"/>
-</instance>
-<instance part="XP" gate="-2" x="29.21" y="172.72" smashed="yes">
-<attribute name="VALUE" x="26.67" y="169.037" size="1.778" layer="96"/>
-<attribute name="NAME" x="27.94" y="171.831" size="1.778" layer="95" rot="MR0"/>
-</instance>
 <instance part="P+1" gate="1" x="38.1" y="187.96" smashed="yes">
 <attribute name="VALUE" x="36.83" y="189.23" size="1.778" layer="96"/>
 </instance>
@@ -9991,15 +9899,21 @@ an external driver like the
 <attribute name="NAME" x="290.83" y="152.273" size="1.778" layer="95"/>
 <attribute name="VALUE" x="290.83" y="152.4" size="1.778" layer="96"/>
 </instance>
+<instance part="JP5" gate="G$1" x="21.59" y="182.88" smashed="yes" rot="R180">
+<attribute name="NAME" x="27.94" y="188.087" size="1.778" layer="95" rot="R180"/>
+<attribute name="VALUE" x="27.94" y="187.96" size="1.778" layer="96" rot="R180"/>
+</instance>
+<instance part="JP0" gate="G$1" x="21.59" y="172.72" smashed="yes" rot="R180">
+<attribute name="NAME" x="27.94" y="177.927" size="1.778" layer="95" rot="R180"/>
+<attribute name="VALUE" x="27.94" y="177.8" size="1.778" layer="96" rot="R180"/>
+</instance>
 </instances>
 <busses>
 </busses>
 <nets>
 <net name="+5V" class="1">
 <segment>
-<pinref part="XP" gate="-1" pin="KL"/>
 <pinref part="P+1" gate="1" pin="+5V"/>
-<wire x1="34.29" y1="182.88" x2="38.1" y2="182.88" width="0.1524" layer="91"/>
 <wire x1="38.1" y1="182.88" x2="38.1" y2="185.42" width="0.1524" layer="91"/>
 <wire x1="38.1" y1="181.61" x2="38.1" y2="182.88" width="0.1524" layer="91"/>
 <junction x="38.1" y="182.88"/>
@@ -10007,6 +9921,8 @@ an external driver like the
 <wire x1="38.1" y1="182.88" x2="44.45" y2="182.88" width="0.1524" layer="91"/>
 <wire x1="44.45" y1="182.88" x2="44.45" y2="180.34" width="0.1524" layer="91"/>
 <pinref part="C1" gate="G$1" pin="1"/>
+<wire x1="38.1" y1="182.88" x2="24.13" y2="182.88" width="0.1524" layer="91"/>
+<pinref part="JP5" gate="G$1" pin="1"/>
 </segment>
 <segment>
 <pinref part="P+3" gate="1" pin="+5V"/>
@@ -10111,8 +10027,6 @@ an external driver like the
 <net name="GND" class="1">
 <segment>
 <pinref part="GND1" gate="1" pin="GND"/>
-<wire x1="38.1" y1="172.72" x2="34.29" y2="172.72" width="0.1524" layer="91"/>
-<pinref part="XP" gate="-2" pin="KL"/>
 <wire x1="38.1" y1="173.99" x2="38.1" y2="172.72" width="0.1524" layer="91"/>
 <wire x1="38.1" y1="172.72" x2="38.1" y2="170.18" width="0.1524" layer="91"/>
 <junction x="38.1" y="172.72"/>
@@ -10120,6 +10034,8 @@ an external driver like the
 <wire x1="38.1" y1="172.72" x2="44.45" y2="172.72" width="0.1524" layer="91"/>
 <wire x1="44.45" y1="172.72" x2="44.45" y2="175.26" width="0.1524" layer="91"/>
 <pinref part="C1" gate="G$1" pin="2"/>
+<wire x1="38.1" y1="172.72" x2="24.13" y2="172.72" width="0.1524" layer="91"/>
+<pinref part="JP0" gate="G$1" pin="1"/>
 </segment>
 <segment>
 <pinref part="JD" gate="A" pin="3"/>
