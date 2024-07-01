@@ -9480,7 +9480,7 @@ Source: http://www.diodes.com/datasheets/ds23001.pdf</description>
 <part name="JD" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X5" device="" package3d_urn="urn:adsk.eagle:package:22469/2"/>
 <part name="P+3" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="+5V" device=""/>
 <part name="GND4" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
-<part name="C2" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="C-EU" device="050-024X044" package3d_urn="urn:adsk.eagle:package:23643/1" value="2.2uF"/>
+<part name="C2" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="C-EU" device="050-024X044" package3d_urn="urn:adsk.eagle:package:23643/1" value="330nF"/>
 <part name="JS" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X5" device="" package3d_urn="urn:adsk.eagle:package:22469/2"/>
 <part name="GND5" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 <part name="GND6" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
@@ -9490,9 +9490,9 @@ Source: http://www.diodes.com/datasheets/ds23001.pdf</description>
 <part name="U2" library="linear" library_urn="urn:adsk.eagle:library:262" deviceset="MCP602" device="P" package3d_urn="urn:adsk.eagle:package:16409/2" value="MCP6002-I/P"/>
 <part name="GND8" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 <part name="P+5" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="+5V" device=""/>
-<part name="C3" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="C-EU" device="050-024X044" package3d_urn="urn:adsk.eagle:package:23643/1" value="2.2uF"/>
+<part name="C3" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="C-EU" device="050-024X044" package3d_urn="urn:adsk.eagle:package:23643/1" value="330nF"/>
 <part name="GND10" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
-<part name="JPL" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X2" device="" package3d_urn="urn:adsk.eagle:package:22435/2"/>
+<part name="JP12L" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X2" device="" package3d_urn="urn:adsk.eagle:package:22435/2"/>
 <part name="JPH" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X3" device="" package3d_urn="urn:adsk.eagle:package:22458/2"/>
 <part name="D1" library="diode-vertical" deviceset="SB" device="-V" technology="120" value="SA5.0A"/>
 <part name="JG1H" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X1" device="" package3d_urn="urn:adsk.eagle:package:22485/2"/>
@@ -9531,30 +9531,36 @@ Source: http://www.diodes.com/datasheets/ds23001.pdf</description>
 <part name="GND9" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 <part name="GND11" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 <part name="R4" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-US_" device="0207/10" package3d_urn="urn:adsk.eagle:package:23491/2" value="56k"/>
-<part name="R5" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-US_" device="0207/15" package3d_urn="urn:adsk.eagle:package:23492/1" value="56k"/>
+<part name="R5" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-US_" device="0207/12" package3d_urn="urn:adsk.eagle:package:23489/1" value="56k"/>
 <part name="R6" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-US_" device="0207/2V" package3d_urn="urn:adsk.eagle:package:23490/1" value="330k"/>
 <part name="R7" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-US_" device="0207/2V" package3d_urn="urn:adsk.eagle:package:23490/1" value="10k"/>
 <part name="P+10" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="+5V" device=""/>
 <part name="R8" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-US_" device="0207/2V" package3d_urn="urn:adsk.eagle:package:23490/1" value="10k"/>
 <part name="P+11" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="+5V" device=""/>
-<part name="R9" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-US_" device="0207/7" package3d_urn="urn:adsk.eagle:package:23493/2" value="10k"/>
+<part name="R9" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-US_" device="0207/7" package3d_urn="urn:adsk.eagle:package:23493/2" value="47k"/>
 <part name="P+12" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="+5V" device=""/>
-<part name="R10" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-US_" device="0207/5V" package3d_urn="urn:adsk.eagle:package:23502/1" value="10k"/>
-<part name="C4" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="C-EU" device="050-024X044" package3d_urn="urn:adsk.eagle:package:23643/1" value="100p"/>
+<part name="R10" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-US_" device="0207/5V" package3d_urn="urn:adsk.eagle:package:23502/1" value="22k"/>
+<part name="C4" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="C-EU" device="050-024X044" package3d_urn="urn:adsk.eagle:package:23643/1" value="100pF"/>
 <part name="GND12" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
-<part name="R11" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-US_" device="0207/5V" package3d_urn="urn:adsk.eagle:package:23502/1" value="10k"/>
+<part name="R11" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-US_" device="0207/5V" package3d_urn="urn:adsk.eagle:package:23502/1" value="47k"/>
 <part name="P+13" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="+5V" device=""/>
-<part name="R13" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-US_" device="0207/5V" package3d_urn="urn:adsk.eagle:package:23502/1" value="10k"/>
-<part name="C5" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="C-EU" device="050-024X044" package3d_urn="urn:adsk.eagle:package:23643/1" value="100p"/>
+<part name="R13" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-US_" device="0207/5V" package3d_urn="urn:adsk.eagle:package:23502/1" value="22k"/>
+<part name="C5" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="C-EU" device="050-024X044" package3d_urn="urn:adsk.eagle:package:23643/1" value="100pF"/>
 <part name="GND13" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
-<part name="C6" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="C-EU" device="050-024X044" package3d_urn="urn:adsk.eagle:package:23643/1" value="2.2uF"/>
+<part name="C6" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="C-EU" device="050-024X044" package3d_urn="urn:adsk.eagle:package:23643/1" value="330nF"/>
 <part name="GND14" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
-<part name="C7" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="C-EU" device="050-024X044" package3d_urn="urn:adsk.eagle:package:23643/1" value="2.2u"/>
+<part name="C7" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="C-EU" device="050-024X044" package3d_urn="urn:adsk.eagle:package:23643/1" value="330nF"/>
 <part name="P+14" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="+5V" device=""/>
 <part name="D14" library="diode-vertical" deviceset="SB" device="-V" technology="140" value="SB140TA"/>
 <part name="D15" library="diode-vertical" deviceset="SB" device="-V" technology="140" value="SB140TA"/>
 <part name="GND15" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 <part name="R14" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-US_" device="0207/15" package3d_urn="urn:adsk.eagle:package:23492/1" value="8R"/>
+<part name="+3V2" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="+3V3" device=""/>
+<part name="R15" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-US_" device="0207/10" package3d_urn="urn:adsk.eagle:package:23491/2" value="100R"/>
+<part name="D16" library="diode" library_urn="urn:adsk.eagle:library:210" deviceset="1N581*" device="" package3d_urn="urn:adsk.eagle:package:43421/1" technology="7-T"/>
+<part name="D17" library="diode" library_urn="urn:adsk.eagle:library:210" deviceset="1N581*" device="" package3d_urn="urn:adsk.eagle:package:43421/1" technology="7-T"/>
+<part name="GND16" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
+<part name="JPSL" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X1" device="" package3d_urn="urn:adsk.eagle:package:22485/2"/>
 </parts>
 <sheets>
 <sheet>
@@ -9565,7 +9571,7 @@ per gauge</text>
 crimp female 100mil-pitch:
 Adafruit 206, or
 Samtec IDSS-05-S-05.75-T-ST4</text>
-<text x="306.07" y="156.21" size="1.778" layer="97" rot="MR180">Vf = 2.1V typ, If ≤ 30mA
+<text x="318.77" y="154.94" size="1.778" layer="97" rot="MR180">Vf = 2.1V typ, If ≤ 30mA
 C5xx-Axx amber LEDs ×2×2:
 If ~ 26.3mA, R12, R45
 C5xx-Rxx red LED ×1:
@@ -9577,22 +9583,22 @@ If ~ 3.1mA, Rs</text>
 <text x="228.6" y="151.13" size="3.81" layer="97">Debug</text>
 <text x="27.94" y="194.31" size="3.81" layer="97">Power</text>
 <text x="181.61" y="203.2" size="3.81" layer="97">Control</text>
-<text x="303.53" y="158.75" size="1.4224" layer="97" rot="R180">If this is more than 100mA,
+<text x="318.77" y="134.62" size="1.4224" layer="97">If this is more than 100mA,
 an external driver like the
 2n7000 would be necessary</text>
-<wire x1="309.88" y1="160.528" x2="309.88" y2="159.258" width="0.1524" layer="94"/>
-<wire x1="309.88" y1="160.528" x2="309.88" y2="161.798" width="0.1524" layer="94"/>
-<wire x1="309.88" y1="160.528" x2="311.15" y2="161.798" width="0.1524" layer="94"/>
-<wire x1="311.15" y1="161.798" x2="311.15" y2="160.528" width="0.1524" layer="94"/>
-<wire x1="311.15" y1="160.528" x2="311.15" y2="159.258" width="0.1524" layer="94"/>
-<wire x1="311.15" y1="159.258" x2="309.88" y2="160.528" width="0.1524" layer="94"/>
-<wire x1="311.15" y1="160.528" x2="313.69" y2="160.528" width="0.1524" layer="94"/>
-<wire x1="309.118" y1="159.258" x2="308.61" y2="158.75" width="0.1524" layer="94"/>
-<wire x1="308.61" y1="158.75" x2="308.61" y2="159.258" width="0.1524" layer="94"/>
-<wire x1="308.61" y1="158.75" x2="309.118" y2="158.75" width="0.1524" layer="94"/>
-<wire x1="309.372" y1="158.75" x2="309.372" y2="158.242" width="0.1524" layer="94"/>
-<wire x1="309.372" y1="158.242" x2="309.88" y2="158.242" width="0.1524" layer="94"/>
-<wire x1="309.372" y1="158.242" x2="309.88" y2="158.75" width="0.1524" layer="94"/>
+<wire x1="309.88" y1="157.48" x2="309.88" y2="156.21" width="0.1524" layer="94"/>
+<wire x1="309.88" y1="157.48" x2="309.88" y2="158.75" width="0.1524" layer="94"/>
+<wire x1="309.88" y1="157.48" x2="311.15" y2="158.75" width="0.1524" layer="94"/>
+<wire x1="311.15" y1="158.75" x2="311.15" y2="157.48" width="0.1524" layer="94"/>
+<wire x1="311.15" y1="157.48" x2="311.15" y2="156.21" width="0.1524" layer="94"/>
+<wire x1="311.15" y1="156.21" x2="309.88" y2="157.48" width="0.1524" layer="94"/>
+<wire x1="311.15" y1="157.48" x2="316.992" y2="157.48" width="0.1524" layer="94"/>
+<wire x1="309.118" y1="156.21" x2="308.61" y2="155.702" width="0.1524" layer="94"/>
+<wire x1="308.61" y1="155.702" x2="308.61" y2="156.21" width="0.1524" layer="94"/>
+<wire x1="308.61" y1="155.702" x2="309.118" y2="155.702" width="0.1524" layer="94"/>
+<wire x1="309.372" y1="155.702" x2="309.372" y2="155.194" width="0.1524" layer="94"/>
+<wire x1="309.372" y1="155.194" x2="309.88" y2="155.194" width="0.1524" layer="94"/>
+<wire x1="309.372" y1="155.194" x2="309.88" y2="155.702" width="0.1524" layer="94"/>
 <wire x1="313.182" y1="163.83" x2="313.182" y2="162.56" width="0.1524" layer="94"/>
 <wire x1="313.182" y1="163.83" x2="313.182" y2="165.1" width="0.1524" layer="94"/>
 <wire x1="313.182" y1="163.83" x2="314.452" y2="165.1" width="0.1524" layer="94"/>
@@ -9612,7 +9618,7 @@ an external driver like the
 <wire x1="313.69" y1="165.354" x2="313.69" y2="166.624" width="0.1524" layer="94"/>
 <wire x1="313.69" y1="166.624" x2="313.69" y2="167.894" width="0.1524" layer="94"/>
 <wire x1="313.69" y1="167.894" x2="312.42" y2="166.624" width="0.1524" layer="94"/>
-<wire x1="313.69" y1="166.624" x2="316.23" y2="166.624" width="0.1524" layer="94"/>
+<wire x1="313.69" y1="166.624" x2="316.992" y2="166.624" width="0.1524" layer="94"/>
 <wire x1="311.658" y1="167.894" x2="311.15" y2="168.402" width="0.1524" layer="94"/>
 <wire x1="311.15" y1="168.402" x2="311.15" y2="167.894" width="0.1524" layer="94"/>
 <wire x1="311.15" y1="168.402" x2="311.658" y2="168.402" width="0.1524" layer="94"/>
@@ -9646,12 +9652,8 @@ an external driver like the
 <wire x1="307.594" y1="161.544" x2="308.102" y2="161.544" width="0.1524" layer="94"/>
 <wire x1="307.594" y1="161.544" x2="308.102" y2="162.052" width="0.1524" layer="94"/>
 <wire x1="308.102" y1="163.83" x2="304.8" y2="163.83" width="0.1524" layer="94"/>
-<wire x1="304.8" y1="163.83" x2="304.8" y2="166.624" width="0.1524" layer="94"/>
-<wire x1="304.8" y1="166.624" x2="307.34" y2="166.624" width="0.1524" layer="94"/>
-<wire x1="304.8" y1="166.624" x2="300.482" y2="166.624" width="0.1524" layer="94"/>
-<wire x1="309.88" y1="160.528" x2="302.006" y2="160.528" width="0.1524" layer="94"/>
-<wire x1="302.006" y1="160.528" x2="302.006" y2="163.83" width="0.1524" layer="94"/>
-<wire x1="302.006" y1="163.83" x2="300.482" y2="163.83" width="0.1524" layer="94"/>
+<wire x1="307.34" y1="166.624" x2="304.8" y2="166.624" width="0.1524" layer="94"/>
+<wire x1="309.88" y1="157.48" x2="304.8" y2="157.48" width="0.1524" layer="94"/>
 <text x="152.4" y="45.72" size="1.778" layer="97">Inputs: RC1 RC3
 5-125 nA Ileak</text>
 <text x="62.23" y="120.65" size="3.81" layer="97">Level Shifters</text>
@@ -9740,7 +9742,7 @@ an external driver like the
 <instance part="GND10" gate="1" x="203.2" y="71.12" smashed="yes">
 <attribute name="VALUE" x="200.66" y="68.58" size="1.778" layer="96"/>
 </instance>
-<instance part="JPL" gate="G$1" x="297.18" y="163.83" smashed="yes">
+<instance part="JP12L" gate="G$1" x="297.18" y="163.83" smashed="yes">
 <attribute name="NAME" x="290.83" y="169.545" size="1.778" layer="95"/>
 <attribute name="VALUE" x="290.83" y="156.21" size="1.778" layer="96"/>
 </instance>
@@ -9788,9 +9790,9 @@ an external driver like the
 <attribute name="NAME" x="344.3986" y="179.07" size="1.778" layer="95" rot="R270"/>
 <attribute name="VALUE" x="344.678" y="172.72" size="1.778" layer="96" rot="R270"/>
 </instance>
-<instance part="RP" gate="G$1" x="120.65" y="177.8" smashed="yes" rot="R270">
-<attribute name="NAME" x="123.19" y="179.2986" size="1.778" layer="95"/>
-<attribute name="VALUE" x="123.19" y="177.038" size="1.778" layer="96"/>
+<instance part="RP" gate="G$1" x="48.26" y="55.88" smashed="yes" rot="R270">
+<attribute name="NAME" x="45.72" y="58.1914" size="1.778" layer="95" rot="R180"/>
+<attribute name="VALUE" x="45.72" y="55.372" size="1.778" layer="96" rot="R180"/>
 </instance>
 <instance part="+3V1" gate="G$1" x="107.95" y="187.96" smashed="yes" rot="MR0">
 <attribute name="VALUE" x="105.41" y="189.23" size="1.778" layer="96"/>
@@ -9948,9 +9950,9 @@ an external driver like the
 <instance part="GND14" gate="1" x="156.21" y="80.01" smashed="yes" rot="MR0">
 <attribute name="VALUE" x="153.67" y="77.47" size="1.778" layer="96"/>
 </instance>
-<instance part="C7" gate="G$1" x="115.57" y="179.07" smashed="yes" rot="MR0">
-<attribute name="NAME" x="114.046" y="179.451" size="1.778" layer="95" rot="MR0"/>
-<attribute name="VALUE" x="114.046" y="174.371" size="1.778" layer="96" rot="MR0"/>
+<instance part="C7" gate="G$1" x="115.57" y="179.07" smashed="yes">
+<attribute name="NAME" x="117.094" y="179.451" size="1.778" layer="95"/>
+<attribute name="VALUE" x="117.094" y="174.371" size="1.778" layer="96"/>
 </instance>
 <instance part="P+14" gate="1" x="275.59" y="175.26" smashed="yes">
 <attribute name="VALUE" x="273.05" y="176.53" size="1.778" layer="96"/>
@@ -9968,6 +9970,26 @@ an external driver like the
 <instance part="R14" gate="G$1" x="281.94" y="163.83" smashed="yes">
 <attribute name="NAME" x="280.67" y="165.3286" size="1.778" layer="95"/>
 <attribute name="VALUE" x="280.67" y="160.528" size="1.778" layer="96"/>
+</instance>
+<instance part="+3V2" gate="G$1" x="48.26" y="67.31" smashed="yes" rot="MR0">
+<attribute name="VALUE" x="45.72" y="68.58" size="1.778" layer="96"/>
+</instance>
+<instance part="R15" gate="G$1" x="39.37" y="49.53" smashed="yes">
+<attribute name="NAME" x="34.29" y="51.0286" size="1.778" layer="95"/>
+<attribute name="VALUE" x="34.29" y="46.228" size="1.778" layer="96"/>
+</instance>
+<instance part="D16" gate="G$1" x="58.42" y="54.61" smashed="yes" rot="R90">
+<attribute name="NAME" x="61.214" y="53.975" size="1.778" layer="95"/>
+</instance>
+<instance part="D17" gate="G$1" x="58.42" y="44.45" smashed="yes" rot="R90">
+<attribute name="NAME" x="61.214" y="43.815" size="1.778" layer="95"/>
+</instance>
+<instance part="GND16" gate="1" x="58.42" y="38.1" smashed="yes" rot="MR0">
+<attribute name="VALUE" x="55.88" y="35.56" size="1.778" layer="96"/>
+</instance>
+<instance part="JPSL" gate="G$1" x="297.18" y="157.48" smashed="yes">
+<attribute name="NAME" x="290.83" y="152.273" size="1.778" layer="95"/>
+<attribute name="VALUE" x="290.83" y="152.4" size="1.778" layer="96"/>
 </instance>
 </instances>
 <busses>
@@ -10210,6 +10232,11 @@ an external driver like the
 <pinref part="GND15" gate="1" pin="GND"/>
 <wire x1="275.59" y1="156.21" x2="275.59" y2="153.67" width="0.1524" layer="91"/>
 </segment>
+<segment>
+<pinref part="GND16" gate="1" pin="GND"/>
+<pinref part="D17" gate="G$1" pin="A"/>
+<wire x1="58.42" y1="40.64" x2="58.42" y2="41.91" width="0.1524" layer="91"/>
+</segment>
 </net>
 <net name="!MCLR" class="0">
 <segment>
@@ -10280,6 +10307,22 @@ an external driver like the
 <wire x1="205.74" y1="158.75" x2="208.28" y2="158.75" width="0.1524" layer="91"/>
 <junction x="208.28" y="158.75"/>
 <label x="209.55" y="158.75" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="RP" gate="G$1" pin="2"/>
+<wire x1="48.26" y1="50.8" x2="48.26" y2="49.53" width="0.1524" layer="91"/>
+<wire x1="48.26" y1="49.53" x2="44.45" y2="49.53" width="0.1524" layer="91"/>
+<pinref part="R15" gate="G$1" pin="2"/>
+<junction x="48.26" y="49.53"/>
+<wire x1="48.26" y1="49.53" x2="58.42" y2="49.53" width="0.1524" layer="91"/>
+<junction x="62.23" y="49.53"/>
+<pinref part="D16" gate="G$1" pin="A"/>
+<wire x1="58.42" y1="49.53" x2="62.23" y2="49.53" width="0.1524" layer="91"/>
+<wire x1="58.42" y1="52.07" x2="58.42" y2="49.53" width="0.1524" layer="91"/>
+<junction x="58.42" y="49.53"/>
+<pinref part="D17" gate="G$1" pin="C"/>
+<wire x1="58.42" y1="46.99" x2="58.42" y2="49.53" width="0.1524" layer="91"/>
+<label x="63.5" y="49.53" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="SCLK" class="0">
@@ -10449,21 +10492,27 @@ an external driver like the
 <wire x1="322.58" y1="161.29" x2="342.9" y2="161.29" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="+3V3" class="0">
+<net name="+3V3" class="1">
 <segment>
 <pinref part="JS" gate="A" pin="1"/>
 <wire x1="101.6" y1="172.72" x2="107.95" y2="172.72" width="0.1524" layer="91"/>
 <pinref part="+3V1" gate="G$1" pin="+3V3"/>
 <wire x1="107.95" y1="185.42" x2="107.95" y2="184.15" width="0.1524" layer="91"/>
-<pinref part="RP" gate="G$1" pin="1"/>
 <wire x1="107.95" y1="184.15" x2="107.95" y2="172.72" width="0.1524" layer="91"/>
-<wire x1="120.65" y1="182.88" x2="120.65" y2="184.15" width="0.1524" layer="91"/>
-<wire x1="120.65" y1="184.15" x2="115.57" y2="184.15" width="0.1524" layer="91"/>
 <junction x="107.95" y="184.15"/>
 <pinref part="C7" gate="G$1" pin="1"/>
 <wire x1="115.57" y1="184.15" x2="107.95" y2="184.15" width="0.1524" layer="91"/>
 <wire x1="115.57" y1="181.61" x2="115.57" y2="184.15" width="0.1524" layer="91"/>
-<junction x="115.57" y="184.15"/>
+</segment>
+<segment>
+<pinref part="+3V2" gate="G$1" pin="+3V3"/>
+<pinref part="RP" gate="G$1" pin="1"/>
+<wire x1="48.26" y1="64.77" x2="48.26" y2="62.23" width="0.1524" layer="91"/>
+<pinref part="D16" gate="G$1" pin="C"/>
+<wire x1="48.26" y1="62.23" x2="48.26" y2="60.96" width="0.1524" layer="91"/>
+<wire x1="58.42" y1="57.15" x2="58.42" y2="62.23" width="0.1524" layer="91"/>
+<wire x1="58.42" y1="62.23" x2="48.26" y2="62.23" width="0.1524" layer="91"/>
+<junction x="48.26" y="62.23"/>
 </segment>
 </net>
 <net name="MOSI_LINE" class="0">
@@ -10484,13 +10533,15 @@ an external driver like the
 <net name="MISO_LINE" class="0">
 <segment>
 <pinref part="JS" gate="A" pin="3"/>
-<pinref part="RP" gate="G$1" pin="2"/>
-<wire x1="120.65" y1="172.72" x2="120.65" y2="167.64" width="0.1524" layer="91"/>
-<wire x1="120.65" y1="167.64" x2="101.6" y2="167.64" width="0.1524" layer="91"/>
-<wire x1="120.65" y1="167.64" x2="123.19" y2="167.64" width="0.1524" layer="91"/>
-<junction x="120.65" y="167.64"/>
+<wire x1="123.19" y1="167.64" x2="101.6" y2="167.64" width="0.1524" layer="91"/>
 <junction x="123.19" y="167.64"/>
 <label x="124.46" y="167.64" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="R15" gate="G$1" pin="1"/>
+<wire x1="34.29" y1="49.53" x2="33.02" y2="49.53" width="0.1524" layer="91"/>
+<junction x="33.02" y="49.53"/>
+<label x="30.48" y="49.53" size="1.778" layer="95" rot="R180"/>
 </segment>
 </net>
 <net name="SCLK_LINE" class="0">
@@ -10592,10 +10643,13 @@ an external driver like the
 <wire x1="288.29" y1="166.37" x2="294.64" y2="166.37" width="0.1524" layer="91"/>
 <junction x="288.29" y="163.83"/>
 <wire x1="294.64" y1="163.83" x2="288.29" y2="163.83" width="0.1524" layer="91"/>
-<pinref part="JPL" gate="G$1" pin="1"/>
-<pinref part="JPL" gate="G$1" pin="2"/>
+<pinref part="JP12L" gate="G$1" pin="1"/>
+<pinref part="JP12L" gate="G$1" pin="2"/>
 <wire x1="287.02" y1="163.83" x2="288.29" y2="163.83" width="0.1524" layer="91"/>
 <pinref part="R14" gate="G$1" pin="2"/>
+<pinref part="JPSL" gate="G$1" pin="1"/>
+<wire x1="288.29" y1="163.83" x2="288.29" y2="157.48" width="0.1524" layer="91"/>
+<wire x1="288.29" y1="157.48" x2="294.64" y2="157.48" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="!FADE" class="0">
@@ -10622,25 +10676,25 @@ an external driver like the
 </sheet>
 </sheets>
 <errors>
-<approved hash="104,1,87.63,173.99,U1,VDD,+5V,,,"/>
-<approved hash="104,1,87.63,118.11,U1,VSS,GND,,,"/>
-<approved hash="104,1,45.72,55.88,U2P,V+,+5V,,,"/>
-<approved hash="104,1,45.72,40.64,U2P,V-,GND,,,"/>
-<approved hash="104,1,-17.78,132.08,U3P,V+,+5V,,,"/>
-<approved hash="104,1,-17.78,116.84,U3P,V-,GND,,,"/>
-<approved hash="113,1,27.6082,195.58,XP,,,,,"/>
-<approved hash="113,1,157.717,166.596,JD,,,,,"/>
-<approved hash="113,1,-115.849,104.366,JS,,,,,"/>
-<approved hash="113,1,134.857,106.906,JPL,,,,,"/>
-<approved hash="113,1,162.281,105.636,JPH,,,,,"/>
-<approved hash="113,1,137.035,60.96,JG1H,,,,,"/>
-<approved hash="113,1,137.244,55.88,JG1L,,,,,"/>
-<approved hash="113,1,137.035,50.8,JG2H,,,,,"/>
-<approved hash="113,1,137.244,45.72,JG2L,,,,,"/>
-<approved hash="113,1,137.035,40.64,JG4H,,,,,"/>
-<approved hash="113,1,137.244,35.56,JG4L,,,,,"/>
-<approved hash="113,1,137.035,30.48,JG5H,,,,,"/>
-<approved hash="113,1,137.244,25.4,JG5L,,,,,"/>
+<approved hash="104,1,190.5,171.45,U1,VDD,+5V,,,"/>
+<approved hash="104,1,190.5,115.57,U1,VSS,GND,,,"/>
+<approved hash="104,1,217.17,73.66,U2P,V+,+5V,,,"/>
+<approved hash="104,1,217.17,58.42,U2P,V-,GND,,,"/>
+<approved hash="104,1,135.89,93.98,U3P,V+,+5V,,,"/>
+<approved hash="104,1,135.89,78.74,U3P,V-,GND,,,"/>
+<approved hash="113,1,30.1482,182.88,XP,,,,,"/>
+<approved hash="113,1,244.077,131.036,JD,,,,,"/>
+<approved hash="113,1,101.321,169.136,JS,,,,,"/>
+<approved hash="113,1,294.877,166.596,JPL,,,,,"/>
+<approved hash="113,1,322.301,165.326,JPH,,,,,"/>
+<approved hash="113,1,307.215,99.06,JG1H,,,,,"/>
+<approved hash="113,1,307.424,93.98,JG1L,,,,,"/>
+<approved hash="113,1,307.215,88.9,JG2H,,,,,"/>
+<approved hash="113,1,307.424,83.82,JG2L,,,,,"/>
+<approved hash="113,1,307.215,78.74,JG4H,,,,,"/>
+<approved hash="113,1,307.424,73.66,JG4L,,,,,"/>
+<approved hash="113,1,307.215,68.58,JG5H,,,,,"/>
+<approved hash="113,1,307.424,63.5,JG5L,,,,,"/>
 </errors>
 </schematic>
 </drawing>
