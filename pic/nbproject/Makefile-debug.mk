@@ -13,8 +13,8 @@ ifeq "${IGNORE_LOCAL}" "TRUE"
 else
 include Makefile
 # Include makefile containing local settings
-ifeq "$(wildcard nbproject/Makefile-local-default.mk)" "nbproject/Makefile-local-default.mk"
-include nbproject/Makefile-local-default.mk
+ifeq "$(wildcard nbproject/Makefile-local-debug.mk)" "nbproject/Makefile-local-debug.mk"
+include nbproject/Makefile-local-debug.mk
 endif
 endif
 
@@ -25,7 +25,7 @@ MV=mv
 CP=cp 
 
 # Macros
-CND_CONF=default
+CND_CONF=debug
 ifeq ($(TYPE_IMAGE), DEBUG_RUN)
 IMAGE_TYPE=debug
 OUTPUT_SUFFIX=hex
@@ -88,7 +88,7 @@ FIXDEPS=fixDeps
 ifneq ($(INFORMATION_MESSAGE), )
 	@echo $(INFORMATION_MESSAGE)
 endif
-	${MAKE}  -f nbproject/Makefile-default.mk dist/${CND_CONF}/${IMAGE_TYPE}/pic.${IMAGE_TYPE}.${OUTPUT_SUFFIX}
+	${MAKE}  -f nbproject/Makefile-debug.mk dist/${CND_CONF}/${IMAGE_TYPE}/pic.${IMAGE_TYPE}.${OUTPUT_SUFFIX}
 
 MP_PROCESSOR_OPTION=PIC16F1773
 # ------------------------------------------------------------------------------------
@@ -100,7 +100,7 @@ ${OBJECTDIR}/main.o: main.asm  nbproject/Makefile-${CND_CONF}.mk
 	${MP_AS} -mcpu=PIC16F1773 -c \
 	-o ${OBJECTDIR}/main.o \
 	main.asm \
-	 -msummary=+mem,-psect,-class,+hex,-file,-sha1,-sha256,-xml,-xmlfull -v -fmax-errors=20 -mwarn=9 -xassembler-with-cpp
+	 -mdfp=".mchp_packs\Microchip\PIC12-16F1xxx_DFP\1.7.242\xc8" -msummary=-mem,+psect,+class,+hex,+file,-sha1,-sha256,-xml,-xmlfull -v -fmax-errors=20 -mwarn=-9 -Dbuild_for_debug=1 -xassembler-with-cpp
 	
 else
 ${OBJECTDIR}/main.o: main.asm  nbproject/Makefile-${CND_CONF}.mk 
@@ -109,7 +109,7 @@ ${OBJECTDIR}/main.o: main.asm  nbproject/Makefile-${CND_CONF}.mk
 	${MP_AS} -mcpu=PIC16F1773 -c \
 	-o ${OBJECTDIR}/main.o \
 	main.asm \
-	 -msummary=+mem,-psect,-class,+hex,-file,-sha1,-sha256,-xml,-xmlfull -v -fmax-errors=20 -mwarn=9 -xassembler-with-cpp
+	 -mdfp=".mchp_packs\Microchip\PIC12-16F1xxx_DFP\1.7.242\xc8" -msummary=-mem,+psect,+class,+hex,+file,-sha1,-sha256,-xml,-xmlfull -v -fmax-errors=20 -mwarn=-9 -Dbuild_for_debug=1 -xassembler-with-cpp
 	
 endif
 
@@ -120,13 +120,13 @@ dist/${CND_CONF}/${IMAGE_TYPE}/pic.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTFILES
 	@${MKDIR} dist/${CND_CONF}/${IMAGE_TYPE} 
 	${MP_LD} -mcpu=PIC16F1773 ${OBJECTFILES_QUOTED_IF_SPACED} \
 	-o dist/${CND_CONF}/${IMAGE_TYPE}/pic.${IMAGE_TYPE}.${OUTPUT_SUFFIX} \
-	 -msummary=+mem,-psect,-class,+hex,-file,-sha1,-sha256,-xml,-xmlfull -Wl,-aNEARCODE=000h-3FFh,-ppsect_por_vec=0,-ppsect_isr_vec=4 -mcallgraph=std -mno-download-hex
+	 -mdfp=".mchp_packs\Microchip\PIC12-16F1xxx_DFP\1.7.242\xc8" -msummary=-mem,+psect,+class,+hex,+file,-sha1,-sha256,-xml,-xmlfull -Wl,-aNEARCODE=000h-3FFh,-ppsect_por_vec=0,-ppsect_isr_vec=4,-Map=dist/debug/production/pic.production.map -mcallgraph=full -mno-download-hex
 else
 dist/${CND_CONF}/${IMAGE_TYPE}/pic.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTFILES}  nbproject/Makefile-${CND_CONF}.mk   
 	@${MKDIR} dist/${CND_CONF}/${IMAGE_TYPE} 
 	${MP_LD} -mcpu=PIC16F1773 ${OBJECTFILES_QUOTED_IF_SPACED} \
 	-o dist/${CND_CONF}/${IMAGE_TYPE}/pic.${IMAGE_TYPE}.${OUTPUT_SUFFIX} \
-	 -msummary=+mem,-psect,-class,+hex,-file,-sha1,-sha256,-xml,-xmlfull -Wl,-aNEARCODE=000h-3FFh,-ppsect_por_vec=0,-ppsect_isr_vec=4 -mcallgraph=std -mno-download-hex
+	 -mdfp=".mchp_packs\Microchip\PIC12-16F1xxx_DFP\1.7.242\xc8" -msummary=-mem,+psect,+class,+hex,+file,-sha1,-sha256,-xml,-xmlfull -Wl,-aNEARCODE=000h-3FFh,-ppsect_por_vec=0,-ppsect_isr_vec=4,-Map=dist/debug/production/pic.production.map -mcallgraph=full -mno-download-hex
 endif
 
 
@@ -139,8 +139,8 @@ endif
 
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
-	${RM} -r build/default
-	${RM} -r dist/default
+	${RM} -r build/debug
+	${RM} -r dist/debug
 
 # Enable dependency checking
 .dep.inc: .depcheck-impl

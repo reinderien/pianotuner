@@ -1,3 +1,6 @@
 build/
 dist/
 nbproject/private/
+Makefile-local*
+.mchp_packs
+

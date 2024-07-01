@@ -1,8 +1,6 @@
 #include <xc.inc>
 #include "receive.inc"
-    
-    
-#define build_for_debug 0
+
 
 ; CONFIG1
 #if build_for_debug==1
@@ -39,14 +37,19 @@
     
     
 ; A labelled program section (psect) that does not require ROM paging
-code_psect macro name
-    psect psect_&name, class=NEARCODE, space=SPACE_CODE, delta=2
+#define psect_common class=NEARCODE, space=SPACE_CODE, delta=2
+code_psect macro name,optims
+#if build_for_debug==1
+    psect psect_&name, psect_common
+#else
+    psect psect_&name, psect_common, optim=optims
+#endif
     name:
 endm
 
 code_psect por_vec
     ; Oscillator config
-    banksel OSCCON
+    banksel OSCCON  ; 1
     ; IRCF  INTOSC  PRIMUX  PLLMUX  SCS    FOSC
     ; 0111  500kHz       1       0   00  500kHz
     bcf IRCF0
@@ -67,18 +70,17 @@ code_psect init
     ; TRIS could be done this way too but the order doesn't suit this right now
     
 init_watchdog:
-    banksel WDTCON
+    banksel WDTCON  ; 1
     ; 8 second watchdog expiry
     movlw (0b01101 << WDTCON_WDTPS_POSN) | (0 << WDTCON_SWDTEN_POSN)
     movwf WDTCON
     
 select_interrupts:
-    banksel PIE1
+    banksel PIE1  ; 1
     bsf TMR2IE  ; Fade disable timer
     bsf SSP1IE  ; SPI receive
     
 init_ports:
-    ; RA0: dig out (for debugging)
     ; RA1: ana out OPA1OUT (DAC1)
     ; RA4: ana out DAC4
     ; RB0: dig out COG1A
@@ -90,78 +92,84 @@ init_ports:
     ; RC3: SCK
     ; RC6: ana out OPA3OUT (DAC5)
     ; RE3: dig in  MCLR
-    ; Unused pins dig out driven to 0.
+    ; Unused pins dig out weak pullup to 1.
     ; Leave slew rate limitation enabled.
-    ; Leave WPUEN disabled.
+    ; Enable WPUEN for unused inputs.
     
-    ; Zero output latches except for the two OD outputs which should remain open
-    ; for now
-    banksel LATA
-    clrf LATA
-    movlw 0b00000001
+    ; Tristate default is input. Before setting any outputs, configure the other
+    ; port properties.
+    
+    ; Unused or active-low lines set to 1, DAC and PGx set to 0
+    banksel LATA  ; 2
+    movlw 0b11101101
+    movwf LATA
+    movlw 0b00111101
     movwf LATB
-    movlw 0b00000100
+    movlw 0b10111111
     movwf LATC
     
-    ; Tristate default is input. Before setting LED fade pin to output, enable
-    ; high drive mode.
-    banksel HIDRVB
-    bsf HIDB0
-    
-    ; Tristates
-    banksel TRISA
-    movlw 0b00010010
-    movwf TRISA
-    movlw 0b11000010
-    movwf TRISB
-    movlw 0b01001010
-    movwf TRISC
-    
     ; The only analogue pins are for DAC/OPA
-    banksel ANSELA
+    banksel ANSELA  ; 3
     movlw 0b00010010
     movwf ANSELA
     movlw 0b00000010
     movwf ANSELB
     movlw 0b01000000
     movwf ANSELC
+    
+    ; Weak pullups on unused ports and MISO
+    banksel WPUA  ; 4
+    movlw 0b11101101
+    movwf WPUA
+    movlw 0b00111100
+    movwf WPUB
+    movlw 0b10110101
+    movwf WPUC
 
-    ; Mostly Schmitt trigger levels; but:
-    ; In practice, the RPI sends an SPI clock of 0.88-3.92V, and a MOSI of
-    ; 0-3.28V. With our Vdd=5.2V,
-    ; TTL in: 0.80-2.00
-    ;  ST in: 1.04-4.16
-    ;    out: 0.60-4.50
-    ; So Schmitt levels are not appropriate for RC1,3.
-
-    banksel INLVLA
-    comf INLVLA ; Default TTL; switch to ST
-    comf INLVLB ; Default TTL; switch to ST
-    ; Default ST; switch to TTL for RC1-3
-    movlw 0b11110001
-    movwf INLVLC
-
-    banksel ODCONB
-    ; Open drain for LED fade. There's an error in the include file where bit
-    ; macros for ODCONA/B are half-missing.
-    bsf ODCONB, 0
+    banksel ODCONB  ; 5
+    ; Open drain for LED fade.
+    bsf ODB0
     ; To do a simple level-shift from our 5.2V to the Rpi's 3.3V on MISO, we
     ; add an external pullup to its 3.3V pin and put MISO on RC2 in open-drain
     bsf ODC2
 
+    ; All Schmitt trigger levels.
+    ;  ST in: 1.04-4.16
+    ;    out: 0.60-4.50
+    banksel INLVLA  ; 7
+    comf INLVLA  ; Default TTL; switch to ST
+    comf INLVLB  ; Default TTL; switch to ST
+    comf INLVLC  ; Default TTL; switch to ST
+
+    ; Enable high drive mode (<100 mA sink)
+    banksel HIDRVB  ; 8
+    bsf HIDB0
+    
+    ; Needed for WPUA-C above to take effect
+    banksel OPTION_REG  ; 1
+    bcf nWPUEN
+    
+    ; Tristates
+    banksel TRISA  ; 1
+    movlw 0b11101101
+    movwf TRISA
+    movlw 0b11000000
+    movwf TRISB
+    movlw 0b00001010
+    movwf TRISC
+    
 init_pps:
     ; RB0: COG1A
     ; RC1: SDI (MOSI)
     ; RC2: SDO (MISO)
     ; RC3: SCK
-    banksel RC2PPS
-    ; We currently do not need MISO
-    ; movlw 0b100011  ; SDO
-    ; movwf RC2PPS
+    banksel RC2PPS  ; 29
+    movlw 0b100011  ; SDO
+    movwf RC2PPS
     movlw 0b000101  ; COG1A
     movwf RB0PPS
     
-    banksel PPSLOCK
+    banksel PPSLOCK  ; 28
     movlw 0b010001  ; RC1
     movwf SSPDATPPS
     movlw 0b010011  ; RC3
@@ -177,7 +185,7 @@ init_fade_cog:
     ; Complementary waveform generator setup to output linear duty cycle growth
     ; based on beat frequency between PWM5 and PWM6. Output goes to a FET driver
     ; on the low side of all backlight LEDs.
-    banksel COG1CON0
+    banksel COG1CON0  ; 13
     bsf G1RIS9   ; PWM5 for rise
     bsf G1FIS10  ; PWM6 for fall
     bsf G1STRA   ; Steering out on channel A
@@ -195,7 +203,7 @@ init_fade_cog:
 init_fade_pwm:
     ; Beat frequency is chosen between these two PWM modules for a linear DC
     ; from 0 to 100%
-    banksel PWM5CON
+    banksel PWM5CON  ; 27
     
     ; HFINTOSC/2**1 = 8 MHz
     movlw (1 << PWM5CLKCON_PS_POSN) \
@@ -251,7 +259,7 @@ init_fade_pwm:
     movwf PWMEN
 
 init_fade_timer:
-    banksel T2CON
+    banksel T2CON  ; 9
     
     ; We can't use one-shot mode because it doesn't respect the postscaler
     ; LFINTOSC=31kHz
@@ -276,7 +284,7 @@ init_gauge_dac:
     ; oa2    *   *   *   *
     ; oa3                    *   *
     ; bits  10   5  10   5  10   5
-    banksel DAC1CON0
+    banksel DAC1CON0  ; 11
     ; Start off with all gauges halfway; other bits start as 0
     bsf DAC1REF9 ; 512/1024
     bsf DAC2REF9 ; 512/1024
@@ -296,7 +304,7 @@ init_gauge_dac:
     bsf DAC5EN
     
 init_gauge_opamp:
-    banksel OPA1CON
+    banksel OPA1CON  ; 10
     movlw 0b0010 ; DAC1
     movwf OPA1PCHS
     movlw 0b0011 ; DAC2
@@ -312,7 +320,7 @@ init_gauge_opamp:
 init_rpi_spi:
     ; MSSP SPI child mode on all-PPS selected pins
     ; SCK, SDI (MOSI), SDO (MISO)
-    banksel SSP1CON1
+    banksel SSP1CON1  ; 4
 
     ; Data read on low-to-high clock
     bsf CKE
@@ -327,12 +335,13 @@ init_rpi_spi:
     ; Sclk <= 3.45MHz from the Pi
 
 enable_interrupts:
-    bsf PEIE  ; Every interrupt we use is on a "peripheral"
+    ; Every interrupt we use is on a "peripheral"
+    bsf PEIE  ; cross-bank
     ; We don't actually need an interrupt vector; we just use interupts to wake
     ; bsf GIE
     
 main:
-    banksel PIR1
+    banksel PIR1  ; 0
 fade_wait:
     sleep
     btfss TMR2IF
@@ -341,16 +350,16 @@ fade_wait:
 fade_disable:
     ; Per 27.6.1, regardless of EN, if shutdown is active, output will take the
     ; "shutdown override" value from ASDAC - which we've set to 1
-    banksel COG1CON0
+    banksel COG1CON0  ; 13
     bsf G1ASE  ; Auto-shutdown enable
     bcf G1EN   ; Disable the COG
-    banksel PWMEN
+    banksel PWMEN  ; 27
     clrf PWMEN ; Disable PWM5, 6
-    banksel T2CON
+    banksel T2CON  ; 9
     bcf T2ON   ; Disable the timer (manual due to free-run mode) 
-    banksel PIE1
+    banksel PIE1  ; 1
     bcf TMR2IE ; Disable timer int
-    banksel PIR1
+    banksel PIR1  ; 0
     bcf TMR2IF ; Clear the timer int flag
     
 rx_reset:

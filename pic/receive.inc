@@ -5,15 +5,15 @@ index_posn equ 5
  
 poll_rx macro
     ; poll until we get a serial interrupt for a byte
-    banksel PIR1
+    banksel PIR1  ; 0
     btfss SSP1IF
     bra $-1
     bcf SSP1IF
 
-    banksel SSP1BUF
+    banksel SSP1BUF  ; 4
     movf SSP1BUF, W  ; Load from MSSP receive buffer
 endm
-    
+
 dac_10b_rx macro index
 dac_rx_&index&_b1:
     ; Receive two bytes to set a 10-bit DAC with another 6-bit check value
@@ -23,8 +23,8 @@ dac_rx_&index&_b1:
     ; FM=0 Right-justified 10-bit DAC value, starting with (check*3, 0*3, MSB*2)
     ; The upper six bits of DACxREFH are unimplemented so this is safe. 
     ; Don't load via DACxLD until this is validated.
-    banksel DAC&index&REFH
-    movwf DAC&index&REFH   ; 2 LSBs of high DAC byte (MSBs of 10-bit DAC value)
+    banksel DAC&index&REFH     ; All bank 11
+    movwf DAC&index&REFH       ; 2 LSBs of high DAC byte (MSBs of 10-bit DAC value)
     andlw ~0b11                ; Drop the actual DAC data
     xorlw index << index_posn  ; Compare with DAC index
     btfss ZERO                 ; Check for equality
@@ -33,8 +33,8 @@ dac_rx_&index&_b1:
 dac_rx_&index&_b2:
     ; Second byte:
     poll_rx
-    banksel DAC&index&REFL
-    movwf DAC&index&REFL  ; 8 LSBs of 10-bit DAC value
+    banksel DAC&index&REFL  ; All bank 11
+    movwf DAC&index&REFL    ; 8 LSBs of 10-bit DAC value
     ; Load all 10 bits of DAC value
     ; The DACxLD bits are done via #define so we need to use long-form bsf
     bsf BANKMASK(DACLD), DACLD_DAC&index&LD_POSN
@@ -46,9 +46,10 @@ dac_5b_rx macro index
     ; ignored
     poll_rx
 
-    banksel DAC&index&REF
-    movwf DAC&index&REF  ; 5 bits of DAC value
+    banksel DAC&index&REF  ; All bank 11
+    movwf DAC&index&REF    ; 5 bits of DAC value
     
     ; The 5-bit DACs do not have a load bit, so just assume that this last
     ; message is OK rather than juggling RAM
+dac_rx_&index&_done:
 endm
