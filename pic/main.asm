@@ -92,7 +92,7 @@ init_ports:
     ; RC3: SCK
     ; RC6: ana out OPA3OUT (DAC5)
     ; RE3: dig in  MCLR
-    ; Unused pins dig out weak pullup to 1.
+    ; Unused pins ana in weak pullup to 1.
     ; Leave slew rate limitation enabled.
     ; Enable WPUEN for unused inputs.
     
@@ -108,13 +108,15 @@ init_ports:
     movlw 0b10111111
     movwf LATC
     
-    ; The only analogue pins are for DAC/OPA
+    ; The only analogue pins are for DAC/OPA, but we also disable the digital
+    ; buffers for unused inputs by setting them to analogue. That only leaves
+    ; FADE, PG and SPI as digital.
     banksel ANSELA  ; 3
-    movlw 0b00010010
+    movlw 0b11111111
     movwf ANSELA
-    movlw 0b00000010
+    movlw 0b00111110
     movwf ANSELB
-    movlw 0b01000000
+    movlw 0b11110001
     movwf ANSELC
     
     ; Weak pullups on unused ports and MISO
