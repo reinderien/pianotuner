@@ -2217,10 +2217,10 @@ design rules under a new name.</description>
 <attribute name="SPICEPREFIX" value="C" x="2.54" y="15.24" size="1.778" layer="27" rot="R180" display="off"/>
 <attribute name="VALUE" x="1.016" y="10.668" size="1.27" layer="27" ratio="10"/>
 </element>
-<element name="D14" library="diode-vertical" package="ZDIO-2.5" value="SB140TA" x="99.06" y="24.13" smashed="yes" rot="R90">
+<element name="D14" library="diode-vertical" package="ZDIO-2.5" value="1N5817" x="99.06" y="24.13" smashed="yes" rot="R90">
 <attribute name="NAME" x="99.314" y="18.923" size="1.27" layer="25" ratio="10" rot="R90"/>
 </element>
-<element name="D15" library="diode-vertical" package="ZDIO-2.5" value="SB140TA" x="102.87" y="25.4" smashed="yes">
+<element name="D15" library="diode-vertical" package="ZDIO-2.5" value="1N5817" x="102.87" y="25.4" smashed="yes">
 <attribute name="NAME" x="105.283" y="25.146" size="1.27" layer="25" ratio="10"/>
 </element>
 <element name="R14" library="rcl" library_urn="urn:adsk.eagle:library:334" package="0207/15" package3d_urn="urn:adsk.eagle:package:23492/1" value="8R" x="109.22" y="53.34" smashed="yes" rot="R90">

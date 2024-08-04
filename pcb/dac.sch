@@ -9464,8 +9464,8 @@ Source: http://www.diodes.com/datasheets/ds23001.pdf</description>
 <part name="GND14" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 <part name="C7" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="C-EU" device="050-024X044" package3d_urn="urn:adsk.eagle:package:23643/1" value="330nF"/>
 <part name="P+14" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="+5V" device=""/>
-<part name="D14" library="diode-vertical" deviceset="SB" device="-V" technology="140" value="SB140TA"/>
-<part name="D15" library="diode-vertical" deviceset="SB" device="-V" technology="140" value="SB140TA"/>
+<part name="D14" library="diode-vertical" deviceset="SB" device="-V" technology="140" value="1N5817"/>
+<part name="D15" library="diode-vertical" deviceset="SB" device="-V" technology="140" value="1N5817"/>
 <part name="GND15" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 <part name="R14" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-US_" device="0207/15" package3d_urn="urn:adsk.eagle:package:23492/1" value="8R"/>
 <part name="+3V2" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="+3V3" device=""/>
@@ -9573,6 +9573,7 @@ an external driver like the
 5-125 nA Ileak</text>
 <text x="62.23" y="120.65" size="3.81" layer="97">Level Shifters</text>
 <frame x1="0" y1="0" x2="372.11" y2="220.98" columns="9" rows="6" layer="97"/>
+<text x="281.94" y="144.78" size="1.778" layer="97">Implemented as 24R/3</text>
 </plain>
 <instances>
 <instance part="P+1" gate="1" x="38.1" y="187.96" smashed="yes">
