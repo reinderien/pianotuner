@@ -119,13 +119,13 @@ init_ports:
     movlw 0b11110001
     movwf ANSELC
     
-    ; Weak pullups on unused ports and MISO
+    ; Weak pullups on unused ports
     banksel WPUA  ; 4
     movlw 0b11101101
     movwf WPUA
     movlw 0b00111100
     movwf WPUB
-    movlw 0b10110101
+    movlw 0b10110001
     movwf WPUC
 
     banksel ODCONB  ; 5
