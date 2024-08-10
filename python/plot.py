@@ -1,26 +1,26 @@
-#!/usr/bin/env python3
-from math import sqrt
-from typing import Callable, Dict, Iterable, List
+import typing
 
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.animation import FuncAnimation
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes
+from matplotlib.axis import Axis
 from matplotlib.backend_bases import KeyEvent
 from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
 from matplotlib.scale import ScaleBase, register_scale
 from matplotlib.transforms import Transform
 
+import fft
 import params
-from fft import SpectrumFn
-from params import n_to_name, n_to_f
 
+if typing.TYPE_CHECKING:
+    SpectrumFn = typing.Callable[[], fft.AxisPair]
+    ChangeNoteFn = typing.Callable[[int], None]
+    DoubleArray = np.ndarray[typing.Any, np.dtype[np.float64]]
 
-ChangeNoteFn = Callable[[int], None]
-
-KEYS: Dict[str, int] = {
+KEYS: dict[str, int] = {
     'left': -1,
     'right': 1,
     'down': -12,
@@ -40,12 +40,12 @@ class TuneScale(ScaleBase):
 
     # Stretch parameter, higher means more zoom
     a = 4e-5
-    b = 300*a + sqrt(9e4*a**2 + a)
+    b = 300*a + np.sqrt(9e4*a**2 + a)
 
-    def __init__(self, axis, **kwargs):
+    def __init__(self, axis: Axis, **kwargs) -> None:
         super().__init__(axis, **kwargs)
 
-    def set_default_locators_and_formatters(self, axis):
+    def set_default_locators_and_formatters(self, axis: Axis) -> None:
         pass
 
     def get_transform(self) -> Transform:
@@ -56,12 +56,12 @@ class TuneScale(ScaleBase):
         output_dims = 1
         is_separable = True
 
-        def __init__(self):
+        def __init__(self) -> None:
             super().__init__(shorthand_name='forward-tune-transform')
 
-        def transform_non_affine(self, x: np.ndarray) -> np.ndarray:
+        def transform_non_affine(self, x: 'DoubleArray') -> 'DoubleArray':
             a, b = TuneScale.a, TuneScale.b
-            y = np.sign(x) * (1/(b - a*np.abs(x)) - 1/b)
+            y: 'DoubleArray' = np.sign(x) * (1/(b - a*np.abs(x)) - 1/b)
             return y
 
         def inverted(self) -> Transform:
@@ -72,12 +72,12 @@ class TuneScale(ScaleBase):
         output_dims = 1
         is_separable = True
 
-        def __init__(self):
+        def __init__(self) -> None:
             super().__init__(shorthand_name='inverse-tune-transform')
 
-        def transform_non_affine(self, y: np.ndarray) -> np.ndarray:
+        def transform_non_affine(self, y: 'DoubleArray') -> 'DoubleArray':
             a, b = TuneScale.a, TuneScale.b
-            x = np.sign(y)*(b - 1/(np.abs(y) + 1/b))/a
+            x: 'DoubleArray' = np.sign(y)*(b - 1/(np.abs(y) + 1/b))/a
             return x
 
         def inverted(self) -> Transform:
@@ -90,12 +90,12 @@ register_scale(TuneScale)
 class Plot:
     def __init__(
         self,
-        get_spectrum: SpectrumFn,
-        change_note: ChangeNoteFn,
-    ):
+        get_spectrum: 'SpectrumFn',
+        change_note: 'ChangeNoteFn',
+    ) -> None:
         self.get_spectrum = get_spectrum
         self.change_note = change_note
-        self.run: Callable[[], None] = plt.show
+        self.run: typing.Callable[[], None] = plt.show
 
         ticks = [10, 25, 50, 100, 200, 600]
         ticks = [
@@ -108,7 +108,7 @@ class Plot:
         self.fig, ax = plt.subplots()
         self.ax = ax
 
-        self.plots: List[Line2D] = [
+        self.plots: list[Line2D] = [
             ax.plot([], [], label=str(harm))[0]
             for harm in range(1, params.n_harmonics + 1)
         ]
@@ -130,10 +130,10 @@ class Plot:
         self.animation = FuncAnimation(
             self.fig, self.animate,
             interval=1_000 // params.framerate,
-            blit=True,
+            blit=True, cache_frame_data=False,
         )
 
-    def animate(self, frame: int) -> Iterable[Artist]:
+    def animate(self, frame: int) -> typing.Iterable[Artist]:
         freqs, powers = self.get_spectrum()
 
         for freq_axis, power_data, plot in zip(freqs, powers, self.plots):
@@ -141,13 +141,14 @@ class Plot:
 
         return self.plots
 
-    def on_key(self, event: KeyEvent):
-        delta = KEYS.get(event.key)
-        if delta is not None:
-            self.change_note(delta)
+    def on_key(self, event: KeyEvent) -> None:
+        if event.key is not None:
+            delta = KEYS.get(event.key)
+            if delta is not None:
+                self.change_note(delta)
 
-    def set_note(self, note: int):
-        name = n_to_name(note)
-        freq = n_to_f(note)
+    def set_note(self, note: int) -> None:
+        name = params.n_to_name(note)
+        freq = params.n_to_f(note)
         self.ax.set_title(f'Harmonic spectrum at {name} ({freq:.1f} Hz)')
         self.fig.canvas.draw()
