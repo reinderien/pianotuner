@@ -1,68 +1,68 @@
-#!/usr/bin/env python3
-
-import math
-from typing import Union
-
 import numpy as np
-
 
 # https://en.wikipedia.org/wiki/Piano#/media/File:Piano_Frequencies.svg
 NAMES = ('C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B')
 
-LOG_2 = math.log(2)
-SQ2 = math.sqrt(2)
+LOG_2: float = np.log(2)
+SQ2: float = np.sqrt(2)
 
 
 def prev_pow_2(x: float) -> int:
-    return 2 ** int(np.log(x) / LOG_2)
+    exp = int(np.log(x) / LOG_2)
+    power: int = 2**exp
+    return power
 
 
 def next_pow_2(x: float) -> int:
-    return 2 ** int(np.ceil(np.log(x) / LOG_2))
+    exp = int(np.ceil(np.log(x) / LOG_2))
+    power: int = 2**exp
+    return power
 
 
 n_notes = 88         # semitones
 n_a440 = 12*4        # semitones
 f_a0 = f_min = 27.5  # cycles/sec
 f_samp = 48_000      # samples/sec
-t_window_min = 1     # seconds
-framerate_min = 30   # frames/sec
+t_window_min = 1.    # seconds
+framerate_min = 30.  # frames/sec
 n_harmonics = 5      # octaves
 y_max = 50           # post-FFT audio y-units
 
-f_upper = f_samp/2   # cycles/sec
+f_upper = 0.5*f_samp  # cycles/sec
 samp_min = t_window_min*f_samp  # samples/cycle
 n_window_samples = next_pow_2(samp_min)  # samples/cycle
-t_window = n_window_samples / f_samp   # secs/cycle
-f_lower = 1/t_window                   # cycles/sec
+t_window = n_window_samples/f_samp     # secs/cycle
+f_lower = 1./t_window                  # cycles/sec
 n_fft_in = n_window_samples            # samples
-n_fft_out = n_window_samples // 2 + 1  # samples
+n_fft_out = n_window_samples//2 + 1    # samples
 frame_samples_max = f_samp / framerate_min       # samples/frame
 n_frame_samples = prev_pow_2(frame_samples_max)  # samples/frame
 framerate = f_samp / n_frame_samples   # frames/sec
 
 
 def n_to_f(note: int) -> float:
-    return f_a0 * np.power(2, note/12)
+    exp: float = np.power(2, note/12)
+    return f_a0 * exp
 
 
 def f_to_n(freq: float) -> float:
-    return 12 * np.log(freq/f_a0) / LOG_2
+    rel: float = np.log(freq/f_a0)
+    return 12 * rel / LOG_2
 
 
 def n_to_name(n: float) -> str:
     # In application note space, A0 maps to index 0, but in musical note space
     # C is at 0
-    n = int(round(n)) + 9
-    return NAMES[n % 12] + str(int(n / 12))
+    n = round(n) + 9
+    return f'{NAMES[n % 12]}{n/12:.0f}'
 
 
 def f_to_fft(f: float) -> int:
     return round(f / f_upper * n_fft_out)
 
 
-def fft_to_f(i: Union[int, np.ndarray]) -> float:
-    return i / n_fft_out * f_upper
+def fft_to_f(i: int) -> float:
+    return i/n_fft_out * f_upper
 
 
 f_max = n_to_f(n_notes - 1)    # cycles/sec
@@ -74,7 +74,7 @@ lower_index = f_to_n(f_lower)  # semitones
 n_worst = f_to_n(f_min + f_lower)  # semitones
 
 
-def dump(verbose: bool = False):
+def dump(verbose: bool = False) -> None:
     print('Audio parameters:')
     print(f't_window = {t_window:.2f}s')
     print(f'f_samp = {f_samp/1e3:.1f} kHz')

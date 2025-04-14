@@ -1,19 +1,36 @@
 import numpy as np
 import pyaudio
 from contextlib import contextmanager
-from typing import Dict, Union, Callable
 import params
+import typing
 
-DeviceDict = Dict[str, Union[str, int, float]]
-ReadFn = Callable[[int], np.ndarray]
+if typing.TYPE_CHECKING:
+    SingleArray = np.ndarray[typing.Any, np.dtype[np.float32]]
+
+    class DeviceDict(typing.TypedDict):
+        index: int
+        structVersion: int
+        name: str
+        hostApi: int
+        maxInputChannels: int
+        maxOutputChannels: int
+        defaultLowInputLatency: float
+        defaultLowOutputLatency: float
+        defaultHighInputLatency: float
+        defaultHighOutputLatency: float
+        defaultSampleRate: float
+
+    class ReadFn(typing.Protocol):
+        def __call__(self, n: int) -> SingleArray:
+            ...
 
 
 @contextmanager
-def init_audio():
+def init_audio() -> 'typing.Iterator[ReadFn]':
     audio = pyaudio.PyAudio()
     stream: pyaudio.Stream
 
-    def read(n: int) -> np.ndarray:
+    def read(n: int) -> 'SingleArray':
         n_avail: int = stream.get_read_available()
         n_read = min(n, n_avail)
         samples: bytes = stream.read(n_read)
@@ -21,7 +38,7 @@ def init_audio():
 
     try:
         print('Selecting default audio device...', end=' ')
-        device: DeviceDict = audio.get_default_input_device_info()
+        device = typing.cast('DeviceDict', audio.get_default_input_device_info())
         print(f"#{device['index']}", end='')
         name = device.get('name')
         if name is not None:

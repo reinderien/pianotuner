@@ -1,4 +1,4 @@
-from typing import Callable, Tuple, List
+import typing
 
 import numpy as np
 import pyfftw
@@ -6,19 +6,16 @@ import re
 import time
 from multiprocessing import cpu_count
 from pathlib import Path
-from pyfftw.pyfftw import FFTW
 
 import audio
 import params
-from params import f_to_fft, fft_to_f, n_to_f, LOG_2, SQ2
 
 
-AxisPair = Tuple[
-    List[np.ndarray],  # freq (horizontal) axes
-    List[np.ndarray],  # power (vertical) axes
-]
-SpectrumFn = Callable[[], AxisPair]
-
+if typing.TYPE_CHECKING:
+    AxisPair = tuple[
+        list[audio.SingleArray],  # freq (horizontal) axes
+        list[audio.SingleArray],  # power (vertical) axes
+    ]
 
 h_indices = np.arange(1, params.n_harmonics + 1)
 
@@ -27,7 +24,7 @@ coefficients = np.full(
     params.n_harmonics + 1,
     params.n_fft_out / params.f_upper,
 )
-coefficients[0] /= SQ2
+coefficients[0] /= params.SQ2
 coefficients[1:] *= np.sqrt(h_indices*(h_indices + 1))
 
 
@@ -36,18 +33,18 @@ class FFTError(Exception):
 
 
 class FFT:
-    def __init__(self, read_audio: audio.ReadFn):
+    def __init__(self, read_audio: 'audio.ReadFn') -> None:
         self.read_audio = read_audio
         self.fft_in = pyfftw.zeros_aligned(shape=params.n_fft_in, dtype=np.float32)
         self.fft_out = pyfftw.empty_aligned(shape=params.n_fft_out, dtype=np.complex64)
 
-        self.fft: FFTW
+        self.fft: pyfftw.FFTW
         self.plan_fft()
 
-        self.cents: List[np.ndarray]
-        self.harmonics: List[np.ndarray]
+        self.cents: 'list[audio.SingleArray]' = []
+        self.harmonics: 'list[audio.SingleArray]' = []
 
-    def plan_fft(self):
+    def plan_fft(self) -> None:
         start = time.monotonic()
         n_cpus = cpu_count()
         types = ('double', 'float', 'ldouble')
@@ -65,8 +62,8 @@ class FFT:
             else:
                 has_wisdom = True
 
-        def make_fft() -> FFTW:
-            flags = ('FFTW_MEASURE',)
+        def make_fft() -> pyfftw.FFTW:
+            flags: tuple[str, ...] = ('FFTW_MEASURE',)
 
             if has_wisdom:
                 flags += ('FFTW_WISDOM_ONLY',)
@@ -82,12 +79,12 @@ class FFT:
             )
 
         try:
-            self.fft: FFTW = make_fft()
+            self.fft = make_fft()
         except RuntimeError as e:
             if 'No FFTW wisdom is known for this plan' in e.args[0]:
                 print(str(e))
                 has_wisdom = False
-                self.fft: FFTW = make_fft()
+                self.fft = make_fft()
             else:
                 raise
 
@@ -102,8 +99,8 @@ class FFT:
         end = time.monotonic()
         print(f'{n_codelets} codelets in {end - start:.1f}s')
 
-    def set_note(self, note: int):
-        f_tune_exact = n_to_f(note)
+    def set_note(self, note: int) -> None:
+        f_tune_exact = params.n_to_f(note)
 
         bounds_flat = np.empty(params.n_harmonics + 1, dtype=np.uint32)
         np.rint(f_tune_exact * coefficients, casting='unsafe', out=bounds_flat)
@@ -113,7 +110,7 @@ class FFT:
 
         cents = np.linspace(bounds[:, 0], bounds[:, 0] + longest - 1, longest).T
         cents *= (params.f_upper / f_tune_exact / params.n_fft_out / h_indices)[..., np.newaxis]
-        cents = 1_200 / LOG_2 * np.log(cents)
+        cents = 1_200 / params.LOG_2 * np.log(cents)
 
         # This can't really be vectorized because these will be jagged.
         self.cents = [
@@ -126,7 +123,7 @@ class FFT:
             for left, right in bounds
         ]
 
-    def get_spectrum(self) -> AxisPair:
+    def get_spectrum(self) -> 'AxisPair':
         # Read up to n_fft_in samples; usually it will be much smaller
         samples = self.read_audio(params.n_fft_in)
 
