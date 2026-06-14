@@ -12,8 +12,8 @@ from matplotlib.lines import Line2D
 from matplotlib.scale import ScaleBase, register_scale
 from matplotlib.transforms import Transform
 
-import fft
 import params
+import spectrum
 
 if typing.TYPE_CHECKING:
     SpectrumFn = typing.Callable[[], fft.AxisPair]
@@ -108,16 +108,12 @@ class Plot:
         self.fig, ax = plt.subplots()
         self.ax = ax
 
-        self.plots: list[Line2D] = [
-            ax.plot([], [], label=str(harm))[0]
-            for harm in range(1, params.n_harmonics + 1)
-        ]
+        self.plot: Line2D = ax.plot([], [])[0]
 
         ax.grid()
-        ax.legend(title='Harmonic')
 
         ax.set_xlabel('Deviation, cents')
-        ax.set_xlim(-600, 600)
+        ax.set_xlim(ticks[0], ticks[-1])
         ax.set_xscale('tune-scale')
         ax.set_xticks(ticks, minor=False)
         ax.tick_params(axis='x', which='both', labelrotation=45)
@@ -133,13 +129,11 @@ class Plot:
             blit=True, cache_frame_data=False,
         )
 
-    def animate(self, frame: int) -> typing.Iterable[Artist]:
-        freqs, powers = self.get_spectrum()
-
-        for freq_axis, power_data, plot in zip(freqs, powers, self.plots):
-            plot.set_data(freq_axis, power_data)
-
-        return self.plots
+    def animate(self, frame: int) -> tuple[Artist, ...]:
+        freq_axis, power_data = self.get_spectrum()
+        plot = self.plot
+        plot.set_data(freq_axis, power_data)
+        return plot,
 
     def on_key(self, event: KeyEvent) -> None:
         if event.key is not None:

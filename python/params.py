@@ -1,6 +1,6 @@
 import numpy as np
 
-# https://en.wikipedia.org/wiki/Piano#/media/File:Piano_Frequencies.svg
+# https://en.wikipedia.org/wiki/Piano_key_frequencies
 NAMES = ('C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B')
 
 LOG_2: float = np.log(2)
@@ -19,25 +19,22 @@ def next_pow_2(x: float) -> int:
     return power
 
 
-n_notes = 88         # semitones
-n_a440 = 12*4        # semitones
-f_a0 = f_min = 27.5  # cycles/sec
-f_samp = 48_000      # samples/sec
-t_window_min = 1.    # seconds
-framerate_min = 30.  # frames/sec
-n_harmonics = 5      # octaves
+n_notes = 88         # (semitones) number of piano notes
+n_a440 = 12*4        # (semitones) offset from A0 in semitones
+f_a0 = f_min = 27.5  # (cycles/sec) frequency of A0
+f_samp = 48_000      # (samples/sec) sampling frequency
+t_window_min = 1.    # (seconds) minimum capture window duration
+framerate_min = 30.  # (frames/sec) minimum animation framerate
 y_max = 50           # post-FFT audio y-units
 
-f_upper = 0.5*f_samp  # cycles/sec
-samp_min = t_window_min*f_samp  # samples/cycle
-n_window_samples = next_pow_2(samp_min)  # samples/cycle
-t_window = n_window_samples/f_samp     # secs/cycle
-f_lower = 1./t_window                  # cycles/sec
-n_fft_in = n_window_samples            # samples
-n_fft_out = n_window_samples//2 + 1    # samples
-frame_samples_max = f_samp / framerate_min       # samples/frame
-n_frame_samples = prev_pow_2(frame_samples_max)  # samples/frame
-framerate = f_samp / n_frame_samples   # frames/sec
+f_upper = 0.5*f_samp  # (cycles/sec) maximum detectable frequency
+samp_min = t_window_min*f_samp  # (samples/cycle) minimum samples per window
+n_window_samples = next_pow_2(samp_min)  # (samples/cycle) samples per window >= samp_min
+t_window = n_window_samples/f_samp     # (secs/cycle) capture window duration >= t_window_min
+f_lower = 1./t_window                  # (cycles/sec) minimum detectable frequency
+frame_samples_max = f_samp / framerate_min       # (samples/frame) max samples per animation frame
+n_frame_samples = prev_pow_2(frame_samples_max)  # (samples/frame) samples per animation frame >= frame_samples_max
+framerate = f_samp / n_frame_samples   # (frames/sec) animation framerate
 
 
 def n_to_f(note: int) -> float:
@@ -54,24 +51,17 @@ def n_to_name(n: float) -> str:
     # In application note space, A0 maps to index 0, but in musical note space
     # C is at 0
     n = round(n) + 9
-    return f'{NAMES[n % 12]}{n/12:.0f}'
+    octave, semi = divmod(n, 12)
+    return f'{NAMES[semi]}{octave}'
 
 
-def f_to_fft(f: float) -> int:
-    return round(f / f_upper * n_fft_out)
-
-
-def fft_to_f(i: int) -> float:
-    return i/n_fft_out * f_upper
-
-
-f_max = n_to_f(n_notes - 1)    # cycles/sec
-f_min_tune = n_to_f(-1)        # cycles/sec
-f_max_tune = n_to_f(n_notes)   # cycles/sec
-t_min = 1 / f_min_tune         # secs/cycle
-samp_min = t_min*f_samp        # samples/cycle
-lower_index = f_to_n(f_lower)  # semitones
-n_worst = f_to_n(f_min + f_lower)  # semitones
+f_max = n_to_f(n_notes - 1)    # (cycles/sec) maximum piano frequency
+f_min_tune = n_to_f(-1)        # (cycles/sec) frequency of one below lowest piano note
+f_max_tune = n_to_f(n_notes)   # (cycles/sec) frequency of one above highest piano note
+t_min = 1 / f_min_tune         # (secs/cycle)  cycle time for one below lowest piano note
+samp_min = t_min*f_samp        # (samples/cycle) recalculate min window sample count
+lower_index = f_to_n(f_lower)  # (semitones) lowest detectable note index
+n_worst = f_to_n(f_min + f_lower)  # (semitones) worst-case note resolution
 
 
 def dump(verbose: bool = False) -> None:

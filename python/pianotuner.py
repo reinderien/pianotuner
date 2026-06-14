@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 import audio
-import fft
 import params
 import plot
+import spectrum
 
 
 def main() -> None:
@@ -21,13 +21,13 @@ def main() -> None:
         else:
             return
 
-        fftw.set_note(note)
+        spect.set_note(note)
         plotter.set_note(note)
 
     with audio.init_audio() as read_audio:
-        fftw = fft.FFT(read_audio)
-        plotter = plot.Plot(fftw.get_spectrum, change_note)
-        change_note(0)
+        spect = spectrum.Spectrum(read_audio)
+        plotter = plot.Plot(spect.get_spectrum, change_note)
+        change_note(params.n_a440)
         plotter.run()
 
 

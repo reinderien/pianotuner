@@ -52,6 +52,7 @@ def init_audio() -> 'typing.Iterator[ReadFn]':
             rate=params.f_samp,
             channels=1,
             format=pyaudio.paFloat32,
+            # Not only n_frame_samples; we leave room for a little overrun
             frames_per_buffer=2*params.n_frame_samples,
         )
 
