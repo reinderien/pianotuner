@@ -109,7 +109,7 @@ class Plot:
         self.fig, ax = plt.subplots()
         self.ax = ax
 
-        self.plot: PathCollection = ax.scatter([], [], alpha=0.05)
+        self.plot: PathCollection = ax.scatter([], [], alpha=0.1)
 
         ax.grid()
 

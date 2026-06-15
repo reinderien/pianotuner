@@ -25,7 +25,7 @@ f_a0 = f_min = 27.5  # (cycles/sec) frequency of A0
 f_samp = 48_000      # (samples/sec) sampling frequency
 t_window_min = 0.5   # (seconds) minimum capture window duration
 framerate_min = 30.  # (frames/sec) minimum animation framerate
-y_max = 1            # post-FFT audio y-units
+y_max = 0.5          # post-FFT audio y-units
 
 f_upper = 0.5*f_samp  # (cycles/sec) maximum detectable frequency
 samp_min = t_window_min*f_samp  # (samples/cycle) minimum samples per window
