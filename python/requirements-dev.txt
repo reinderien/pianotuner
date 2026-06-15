@@ -1,2 +1,3 @@
 mypy
+scipy-stubs
 types-pyaudio

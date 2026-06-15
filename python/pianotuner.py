@@ -27,7 +27,7 @@ def main() -> None:
     with audio.init_audio() as read_audio:
         spect = spectrum.Spectrum(read_audio)
         plotter = plot.Plot(spect.get_spectrum, change_note)
-        change_note(params.n_a440)
+        change_note(+0)
         plotter.run()
 
 

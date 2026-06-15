@@ -1,6 +1,7 @@
 import typing
 
 import numpy as np
+import scipy
 
 import audio
 import params
@@ -21,42 +22,72 @@ class Spectrum:
     def __init__(self, read_audio: 'audio.ReadFn') -> None:
         self.read_audio = read_audio
         self.audio_in = np.zeros(shape=params.n_window_samples, dtype=np.float32)
-        self.spec_out = np.empty(shape=0, dtype=np.float32)
-        self.cents: audio.SingleArray = self.spec_out.copy()
+        self.spec_out: audio.SingleArray = np.empty(shape=0, dtype=np.float32)
+        self.freq_out: audio.SingleArray = self.spec_out.copy()
+        self.set_note(params.n_a440)
 
     def set_note(self, note: int) -> None:
-        f_tune_exact = params.n_to_f(note)
+        self.f_tune_exact = params.n_to_f(note)
+        fcent = 2*self.f_tune_exact/params.f_samp
 
-        bounds_flat = np.empty(params.n_harmonics + 1, dtype=np.uint32)
-        np.rint(f_tune_exact * coefficients, casting='unsafe', out=bounds_flat)
-        bounds = np.vstack((bounds_flat[:-1], bounds_flat[1:])).T
-        sizes = (bounds[:, 1] - bounds[:, 0])[..., np.newaxis]
-        longest = np.max(sizes)
+        # 2**(-6/12) is 1/sqrt(2), i.e. -600 cents
+        # 2**(+6/12) is sqrt(2), i.e. +600 cents
+        flo = fcent/params.SQ2
+        fhi = fcent*params.SQ2
+        self.filt_b, self.filt_a = scipy.signal.butter(N=1, Wn=(flo, fhi), btype='bandpass')
 
-        cents = np.linspace(bounds[:, 0], bounds[:, 0] + longest - 1, longest).T
-        cents *= (params.f_upper / f_tune_exact / params.n_fft_out / h_indices)[..., np.newaxis]
-        cents = 1_200 / params.LOG_2 * np.log(cents)
+    def zerocross(self) -> 'AxisPair':
+        """
+        Test case:
+        fsamp = 48000
+        one sample = 1/48000 = 21 us
+        1/440 Hz = 2.3 ms
+        2.3 ms/cycle / 21 us/sample = 109 samples/cycle
+        period = params.f_samp/440
 
-        # This can't really be vectorized because these will be jagged.
-        self.cents = [
-            cent[:size[0]]
-            for cent, size in zip(cents, sizes)
-        ]
+        self.audio_in[:] = 40*np.sin(
+            np.arange(self.audio_in.size)/period * 2*np.pi
+        )
+        """
+        # self.audio_in = np.loadtxt('array.txt')[40000:]
 
-        self.harmonics = [
-            self.fft_out[left: right]
-            for left, right in bounds
-        ]
+        # lopass = self.audio_in - self.audio_in.mean()
+        lopass = scipy.signal.lfilter(self.filt_b, self.filt_a, self.audio_in)
 
-    def zerocross(self) -> 'audio.SingleArray':
-        return np.zeros(20)
-        '''
-        
-        harm = np.abs(harm)
-        yfmax = np.max(harm)
-        if yfmax > params.y_max:
-            harm *= params.y_max / yfmax
-        '''
+        signs = np.sign(lopass)
+        signs = signs[signs != 0]
+        diffs = np.diff(signs)
+
+        i_zc = np.flatnonzero(diffs)  #  > 0)
+        if i_zc.size < 2:
+            empty = np.empty(shape=0, dtype=np.float32)
+            return empty, empty
+
+        y0 = lopass[i_zc]
+        y1 = lopass[i_zc + 1]
+        i_zc_refined = y0/(y0 - y1) + i_zc
+        freqs = params.f_upper/(np.diff(i_zc_refined))
+
+        cents = 1200/params.LOG_2 * np.log(freqs/self.f_tune_exact)
+        mask = (cents > -600) & (cents < 600)
+        # print(f'{cents.min():.1f} < {cents.mean():.1f} < {cents.max():.1f}, ', end='')
+        cents = cents[mask]
+        if cents.size < 1:
+            # print()
+            empty = np.empty(shape=0, dtype=np.float32)
+            return empty, empty
+
+        powers = np.add.reduceat(np.abs(lopass), i_zc)[:-1]
+        powers = powers[mask]
+        pmax = powers.max()
+        print(f'p={pmax}')
+        if 0 < pmax < 10:
+            powers *= 10/pmax
+        elif pmax > params.y_max:
+            powers *= params.y_max/pmax
+
+        return cents, powers
+
 
     def get_spectrum(self) -> 'AxisPair':
         # Read up to n_window_samples; usually it will be much smaller
@@ -68,6 +99,6 @@ class Spectrum:
             self.audio_in[:-n] = self.audio_in[n:]
             # Copy new data into the end of the array
             self.audio_in[-n:] = samples
-            self.spec_out = self.zerocross()
+            self.freq_out, self.spec_out = self.zerocross()
 
-        return self.cents, self.spec_out
+        return self.freq_out, self.spec_out

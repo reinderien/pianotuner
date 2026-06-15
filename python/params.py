@@ -23,7 +23,7 @@ n_notes = 88         # (semitones) number of piano notes
 n_a440 = 12*4        # (semitones) offset from A0 in semitones
 f_a0 = f_min = 27.5  # (cycles/sec) frequency of A0
 f_samp = 48_000      # (samples/sec) sampling frequency
-t_window_min = 1.    # (seconds) minimum capture window duration
+t_window_min = 0.5   # (seconds) minimum capture window duration
 framerate_min = 30.  # (frames/sec) minimum animation framerate
 y_max = 50           # post-FFT audio y-units
 

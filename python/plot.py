@@ -7,6 +7,7 @@ from matplotlib.artist import Artist
 from matplotlib.axes import Axes
 from matplotlib.axis import Axis
 from matplotlib.backend_bases import KeyEvent
+from matplotlib.collections import PathCollection
 from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
 from matplotlib.scale import ScaleBase, register_scale
@@ -108,7 +109,7 @@ class Plot:
         self.fig, ax = plt.subplots()
         self.ax = ax
 
-        self.plot: Line2D = ax.plot([], [])[0]
+        self.plot: PathCollection = ax.scatter([], [], alpha=0.1)
 
         ax.grid()
 
@@ -132,7 +133,7 @@ class Plot:
     def animate(self, frame: int) -> tuple[Artist, ...]:
         freq_axis, power_data = self.get_spectrum()
         plot = self.plot
-        plot.set_data(freq_axis, power_data)
+        plot.set_offsets(np.stack((freq_axis, power_data), axis=1))
         return plot,
 
     def on_key(self, event: KeyEvent) -> None:
