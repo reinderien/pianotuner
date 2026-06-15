@@ -109,7 +109,7 @@ class Plot:
         self.fig, ax = plt.subplots()
         self.ax = ax
 
-        self.plot: PathCollection = ax.scatter([], [], alpha=0.1)
+        self.plot: PathCollection = ax.scatter([], [], alpha=0.05)
 
         ax.grid()
 
@@ -145,5 +145,5 @@ class Plot:
     def set_note(self, note: int) -> None:
         name = params.n_to_name(note)
         freq = params.n_to_f(note)
-        self.ax.set_title(f'Harmonic spectrum at {name} ({freq:.1f} Hz)')
+        self.ax.set_title(f'Spectrum at {name} ({freq:.1f} Hz)')
         self.fig.canvas.draw()

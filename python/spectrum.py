@@ -14,10 +14,6 @@ if typing.TYPE_CHECKING:
     ]
 
 
-class SpectralError(Exception):
-    pass
-
-
 class Spectrum:
     def __init__(self, read_audio: 'audio.ReadFn') -> None:
         self.read_audio = read_audio
@@ -29,9 +25,11 @@ class Spectrum:
     def set_note(self, note: int) -> None:
         self.f_tune_exact = params.n_to_f(note)
         fcentre = 2*self.f_tune_exact/params.f_samp
-        flo = fcentre/params.SQ2  # 2**(-6/12) is 1/sqrt(2), i.e. -600 cents
-        fhi = fcentre*params.SQ2  # 2**(+6/12) is sqrt(2), i.e. +600 cents
-        self.filt_b, self.filt_a = scipy.signal.butter(N=5, Wn=(flo, fhi), btype='bandpass')
+        bandwidth_n = 2  # semitones
+        factor = 2**(bandwidth_n/12)  # frequency factor, unitless
+        flo = fcentre / factor
+        fhi = fcentre * factor
+        self.filt_b, self.filt_a = scipy.signal.butter(N=3, Wn=(flo, fhi), btype='bandpass')
 
     def zerocross(self) -> 'AxisPair':
         """
@@ -40,22 +38,18 @@ class Spectrum:
         one sample = 1/48000 = 21 us
         1/440 Hz = 2.3 ms
         2.3 ms/cycle / 21 us/sample = 109 samples/cycle
-        period = params.f_samp/440
-
-        self.audio_in[:] = 40*np.sin(
-            np.arange(self.audio_in.size)/period * 2*np.pi
-        )
         """
-        # self.audio_in = np.loadtxt('array.txt')[40000:]
+        # period = params.f_samp/440
+        # self.audio_in[:] = 0.01*np.sin(
+        #     np.arange(self.audio_in.size)/period * 2*np.pi
+        # )
 
         # lopass = self.audio_in - self.audio_in.mean()
         lopass = scipy.signal.lfilter(self.filt_b, self.filt_a, self.audio_in)
 
         signs = np.sign(lopass)
         signs = signs[signs != 0]
-        diffs = np.diff(signs)
-
-        i_zc = np.flatnonzero(diffs)  #  > 0)
+        i_zc = np.flatnonzero(np.diff(signs))
         if i_zc.size < 2:
             empty = np.empty(shape=0, dtype=np.float32)
             return empty, empty
@@ -67,22 +61,21 @@ class Spectrum:
 
         cents = 1200/params.LOG_2 * np.log(freqs/self.f_tune_exact)
         mask = (cents > -600) & (cents < 600)
-        print(f'{cents.min():.1f} < {cents.mean():.1f} < {cents.max():.1f}, ', end='')
+        # print(f'{cents.min():.1f} < {cents.mean():.1f} < {cents.max():.1f}, ', end='')
         cents = cents[mask]
         if cents.size < 1:
-            print()
+            # print()
             empty = np.empty(shape=0, dtype=np.float32)
             return empty, empty
 
         powers = np.add.reduceat(np.abs(lopass), i_zc)[:-1]
         powers = powers[mask]
         pmax = powers.max()
-        print(f'p={pmax:.3f}')
+        # print(f'p={pmax:.3f}')
         if pmax > params.y_max:
             powers *= params.y_max/pmax
 
         return cents, powers
-
 
     def get_spectrum(self) -> 'AxisPair':
         # Read up to n_window_samples; usually it will be much smaller
