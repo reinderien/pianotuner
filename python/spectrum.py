@@ -28,13 +28,10 @@ class Spectrum:
 
     def set_note(self, note: int) -> None:
         self.f_tune_exact = params.n_to_f(note)
-        fcent = 2*self.f_tune_exact/params.f_samp
-
-        # 2**(-6/12) is 1/sqrt(2), i.e. -600 cents
-        # 2**(+6/12) is sqrt(2), i.e. +600 cents
-        flo = fcent/params.SQ2
-        fhi = fcent*params.SQ2
-        self.filt_b, self.filt_a = scipy.signal.butter(N=1, Wn=(flo, fhi), btype='bandpass')
+        fcentre = 2*self.f_tune_exact/params.f_samp
+        flo = fcentre/params.SQ2  # 2**(-6/12) is 1/sqrt(2), i.e. -600 cents
+        fhi = fcentre*params.SQ2  # 2**(+6/12) is sqrt(2), i.e. +600 cents
+        self.filt_b, self.filt_a = scipy.signal.butter(N=5, Wn=(flo, fhi), btype='bandpass')
 
     def zerocross(self) -> 'AxisPair':
         """
@@ -70,20 +67,18 @@ class Spectrum:
 
         cents = 1200/params.LOG_2 * np.log(freqs/self.f_tune_exact)
         mask = (cents > -600) & (cents < 600)
-        # print(f'{cents.min():.1f} < {cents.mean():.1f} < {cents.max():.1f}, ', end='')
+        print(f'{cents.min():.1f} < {cents.mean():.1f} < {cents.max():.1f}, ', end='')
         cents = cents[mask]
         if cents.size < 1:
-            # print()
+            print()
             empty = np.empty(shape=0, dtype=np.float32)
             return empty, empty
 
         powers = np.add.reduceat(np.abs(lopass), i_zc)[:-1]
         powers = powers[mask]
         pmax = powers.max()
-        print(f'p={pmax}')
-        if 0 < pmax < 10:
-            powers *= 10/pmax
-        elif pmax > params.y_max:
+        print(f'p={pmax:.3f}')
+        if pmax > params.y_max:
             powers *= params.y_max/pmax
 
         return cents, powers
