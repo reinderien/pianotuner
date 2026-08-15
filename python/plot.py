@@ -9,12 +9,10 @@ from matplotlib.axis import Axis
 from matplotlib.backend_bases import KeyEvent
 from matplotlib.collections import PathCollection
 from matplotlib.figure import Figure
-from matplotlib.lines import Line2D
 from matplotlib.scale import ScaleBase, register_scale
 from matplotlib.transforms import Transform
 
 import params
-import spectrum
 
 if typing.TYPE_CHECKING:
     SpectrumFn = typing.Callable[[], fft.AxisPair]

@@ -20,6 +20,7 @@ class Spectrum:
         self.audio_in = np.zeros(shape=params.n_window_samples, dtype=np.float32)
         self.spec_out: audio.SingleArray = np.empty(shape=0, dtype=np.float32)
         self.freq_out: audio.SingleArray = self.spec_out.copy()
+        self.zi = None
         self.set_note(params.n_a440)
 
     def set_note(self, note: int) -> None:
@@ -30,6 +31,7 @@ class Spectrum:
         flo = fcentre / factor
         fhi = fcentre * factor
         self.filt_b, self.filt_a = scipy.signal.butter(N=3, Wn=(flo, fhi), btype='bandpass')
+        self.zi = scipy.signal.lfiltic(self.filt_b, self.filt_a, y=[0])
 
     def zerocross(self) -> 'AxisPair':
         """
@@ -45,7 +47,7 @@ class Spectrum:
         # )
 
         # lopass = self.audio_in - self.audio_in.mean()
-        lopass = scipy.signal.lfilter(self.filt_b, self.filt_a, self.audio_in)
+        lopass, self.zi = scipy.signal.lfilter(self.filt_b, self.filt_a, self.audio_in, zi=self.zi)
 
         signs = np.sign(lopass)
         signs = signs[signs != 0]
