@@ -14,6 +14,15 @@ if typing.TYPE_CHECKING:
     ]
 
 
+def ffill(arr: np.ndarray) -> np.ndarray:
+    if arr[0] == 0:
+        arr[0] = -1
+    mask = arr == 0
+    idx = np.where(mask, 0, np.arange(len(mask)))
+    np.maximum.accumulate(idx, out=idx)
+    return arr[idx]
+
+
 class Spectrum:
     def __init__(self, read_audio: 'audio.ReadFn') -> None:
         self.read_audio = read_audio
@@ -30,8 +39,11 @@ class Spectrum:
         factor = 2**(bandwidth_n/12)  # frequency factor, unitless
         flo = fcentre / factor
         fhi = fcentre * factor
-        self.filt_b, self.filt_a = scipy.signal.butter(N=3, Wn=(flo, fhi), btype='bandpass')
-        self.zi = scipy.signal.lfiltic(self.filt_b, self.filt_a, y=[0])
+
+        # output='ba' has poor stability, and puts the zi state into NaN for order > 4
+        self.filt_sos = scipy.signal.butter(N=4, Wn=(flo, fhi), btype='bandpass', output='sos')
+
+        self.zi = np.zeros((self.filt_sos.shape[0], 2))
 
     def zerocross(self) -> 'AxisPair':
         """
@@ -47,12 +59,14 @@ class Spectrum:
         # )
 
         # lopass = self.audio_in - self.audio_in.mean()
-        lopass, self.zi = scipy.signal.lfilter(self.filt_b, self.filt_a, self.audio_in, zi=self.zi)
+        lopass, self.zi = scipy.signal.sosfilt(self.filt_sos, self.audio_in, zi=self.zi)
 
+        # Calculate the zero-crossing indices in the lowpass-filtered audio sequence
         signs = np.sign(lopass)
-        signs = signs[signs != 0]
+        # Coerce 0 to the value before it, or -1 at the beginning
+        signs = ffill(signs)
         i_zc = np.flatnonzero(np.diff(signs))
-        if i_zc.size < 2:
+        if i_zc.size < 2:  # Not enough zero crossings for a valid estimate
             empty = np.empty(shape=0, dtype=np.float32)
             return empty, empty
 
