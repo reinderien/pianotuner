@@ -26,11 +26,12 @@ def ffill(arr: np.ndarray) -> np.ndarray:
 class Spectrum:
     def __init__(self, read_audio: 'audio.ReadFn') -> None:
         self.read_audio = read_audio
-        self.audio_in = np.zeros(shape=params.n_window_samples, dtype=np.float32)
-        self.spec_out: audio.SingleArray = np.empty(shape=0, dtype=np.float32)
-        self.freq_out: audio.SingleArray = self.spec_out.copy()
+        self.audio_in = None
+        self.spec_out = None
+        self.freq_out = None
         self.zi = None
         self.set_note(params.n_a440)
+        self.samples = 0
 
     def set_note(self, note: int) -> None:
         self.f_tune_exact = params.n_to_f(note)
@@ -42,8 +43,7 @@ class Spectrum:
 
         # output='ba' has poor stability, and puts the zi state into NaN for order > 4
         self.filt_sos = scipy.signal.butter(N=4, Wn=(flo, fhi), btype='bandpass', output='sos')
-
-        self.zi = np.zeros((self.filt_sos.shape[0], 2))
+        self.zi = scipy.signal.sosfilt_zi(self.filt_sos)
 
     def zerocross(self) -> 'AxisPair':
         """
@@ -99,10 +99,7 @@ class Spectrum:
 
         n = len(samples)
         if n:
-            # Shift the existing data left within the same array
-            self.audio_in[:-n] = self.audio_in[n:]
-            # Copy new data into the end of the array
-            self.audio_in[-n:] = samples
+            self.audio_in = samples
             self.freq_out, self.spec_out = self.zerocross()
 
         return self.freq_out, self.spec_out
