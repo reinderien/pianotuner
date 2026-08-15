@@ -42,7 +42,8 @@ class Spectrum:
         fhi = fcentre * factor
 
         # output='ba' has poor stability, and puts the zi state into NaN for order > 4
-        self.filt_sos = scipy.signal.butter(N=4, Wn=(flo, fhi), btype='bandpass', output='sos')
+        # use Bessel to minimise phase error
+        self.filt_sos = scipy.signal.bessel(N=4, Wn=(flo, fhi), btype='bandpass', output='sos')
         self.zi = scipy.signal.sosfilt_zi(self.filt_sos)
 
     def zerocross(self) -> 'AxisPair':
